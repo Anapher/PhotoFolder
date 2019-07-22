@@ -1,4 +1,5 @@
-﻿using PhotoFolder.Core.Dto.Services;
+﻿using PhotoFolder.Core.Domain;
+using PhotoFolder.Core.Dto.Services;
 using System;
 using System.Threading.Tasks;
 
@@ -11,8 +12,13 @@ namespace PhotoFolder.Core.Interfaces.Services
 
     public class FileProperties
     {
-        public Hash Hash { get; }
-        public Hash BitmapHash { get; }
-        public DateTimeOffset DateTaken { get; }
+        public FileProperties(Hash fileHash, PhotoProperties photoProperties)
+        {
+            FileHash = fileHash;
+            PhotoProperties = photoProperties;
+        }
+
+        public Hash FileHash { get; }
+        public PhotoProperties PhotoProperties { get; }
     }
 }

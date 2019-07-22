@@ -9,7 +9,7 @@ namespace PhotoFolder.Infrastructure.Data.Config
     {
         public void Configure(EntityTypeBuilder<IndexedFile> builder)
         {
-            builder.Property(x => x.Hash).HasConversion(x => x.ToString(), x => Hash.Parse(x));
+            builder.Property(x => x.FileHash).HasConversion(x => x.ToString(), x => Hash.Parse(x));
             builder.HasIndex(x => x.Filename).IsUnique();
         }
     }
