@@ -10,18 +10,13 @@ using System.Threading.Tasks;
 
 namespace PhotoFolder.Infrastructure.Shared
 {
-    public abstract class EfRepository<T> : IRepository<T> where T : BaseEntity
+    public abstract class EfRepository<T> : IRepository<T> where T : class, IEntity
     {
         protected readonly AppDbContext _appDbContext;
 
         protected EfRepository(AppDbContext appDbContext)
         {
             _appDbContext = appDbContext;
-        }
-
-        public virtual Task<T?> GetById(int id)
-        {
-            return _appDbContext.Set<T>().FindAsync(id);
         }
 
         public async Task<IList<T>> GetAll()

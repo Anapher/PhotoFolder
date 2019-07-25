@@ -16,13 +16,13 @@ namespace PhotoFolder.Infrastructure.Data
         {
         }
 
-        public DbSet<IndexedFile> Files { get; set; }
+        public DbSet<FileInformation> Files { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.ApplyConfiguration(new ListedFileConfig());
+            builder.ApplyConfiguration(new FileInformationConfig());
         }
 
         public override int SaveChanges()
@@ -39,14 +39,15 @@ namespace PhotoFolder.Infrastructure.Data
 
         private void AddAuitInfo()
         {
-            var entries = ChangeTracker.Entries().Where(x => x.Entity is BaseEntity && (x.State == EntityState.Added || x.State == EntityState.Modified));
+            var entries = ChangeTracker.Entries()
+                .Where(x => x.Entity is IEntity && (x.State == EntityState.Added || x.State == EntityState.Modified));
             foreach (var entry in entries)
             {
                 if (entry.State == EntityState.Added)
                 {
-                    ((BaseEntity) entry.Entity).CreatedOn = DateTimeOffset.UtcNow;
+                    ((IEntity) entry.Entity).CreatedOn = DateTimeOffset.UtcNow;
                 }
-                ((BaseEntity) entry.Entity).ModifiedOn = DateTimeOffset.UtcNow;
+                ((IEntity) entry.Entity).ModifiedOn = DateTimeOffset.UtcNow;
             }
         }
     }

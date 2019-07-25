@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <Import Project="../nullable.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\PhotoFolder.Core\PhotoFolder.Core.csproj" />
+  </ItemGroup>
+</Project>

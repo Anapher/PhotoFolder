@@ -20,8 +20,4 @@
     <ProjectReference Include="..\..\src\PhotoFolder.Core\PhotoFolder.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UseCases\" />
-  </ItemGroup>
-
 </Project>
