@@ -13,7 +13,7 @@ namespace PhotoFolder.Core.Interfaces.Gateways
         IEnumerable<IFile> EnumerateFiles();
         IFile? GetFile(string filename);
 
-        Regex GetFilePathMatcher(FileInformation fileInformation);
+        string GetFilePathRegexPattern(FileInformation fileInformation);
         string GetRecommendedPath(FileInformation fileInformation);
 
         IIndexedFileRepository GetFileRepository();

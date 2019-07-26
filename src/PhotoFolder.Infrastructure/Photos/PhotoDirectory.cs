@@ -3,6 +3,7 @@ using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using PhotoFolder.Infrastructure.TemplatePath;
+using PhotoFolder.Infrastructure.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
@@ -45,17 +46,22 @@ namespace PhotoFolder.Infrastructure.Photos
             return new Files.FileInfoWrapper(fileInfo, _rootDirectory);
         }
 
-        public Regex GetFilePathMatcher(FileInformation fileInformation)
+        public string GetFilePathRegexPattern(FileInformation fileInformation)
         {
-            throw new NotImplementedException();
+            var values = FilePlaceholderFiller.GetPlaceholders(_photoFilenameTemplate.Fragments.OfType<PlaceholderFragment>().Select(x => x.Value), fileInformation);
+            var path = _photoFilenameTemplate.ToString(values.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value!));
+
+            return TemplateString.Parse(path).ToRegexPattern();
         }
 
         public string GetRecommendedPath(FileInformation fileInformation)
         {
-            // fill palceholders
-            // split \/
-            // trim everything except alphanumerics
-            // forge together with _fileSystem separator
+            var values = FilePlaceholderFiller.GetPlaceholders(_photoFilenameTemplate.Fragments.OfType<PlaceholderFragment>().Select(x => x.Value), fileInformation);
+            var path = _photoFilenameTemplate.ToString(values.ToDictionary(x => x.Key, x => x.Value ?? string.Empty));
+
+            var dirSeparators = new[] { _fileSystem.Path.DirectorySeparatorChar, _fileSystem.Path.AltDirectorySeparatorChar };
+            return PathUtilities.PatchPathParts(path, dirSeparators, PathUtilities.TrimChars(' ', '-'),
+                PathUtilities.RemoveInvalidChars(_fileSystem.Path.GetInvalidFileNameChars()));
         }
 
         public IIndexedFileRepository GetFileRepository()

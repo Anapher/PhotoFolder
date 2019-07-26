@@ -8,7 +8,7 @@ namespace PhotoFolder.Core.Domain.Entities
 {
     public class IndexedFile : IEntity, IFileContentInfo
     {
-        private HashSet<FileLocation> _indexedFiles;
+        private HashSet<FileLocation> _files;
 
         public IndexedFile(Hash hash, long length, DateTimeOffset fileCreatedOn,
             PhotoProperties? photoProperties)
@@ -18,7 +18,7 @@ namespace PhotoFolder.Core.Domain.Entities
             FileCreatedOn = fileCreatedOn;
             PhotoProperties = photoProperties;
 
-            _indexedFiles = new HashSet<FileLocation>();
+            _files = new HashSet<FileLocation>();
         }
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
@@ -36,16 +36,16 @@ namespace PhotoFolder.Core.Domain.Entities
         public DateTimeOffset ModifiedOn { get; set; }
 
         public PhotoProperties? PhotoProperties { get; private set; }
-        public IEnumerable<FileLocation> Files => _indexedFiles;
+        public IEnumerable<FileLocation> Files => _files;
 
         Hash IFileContentInfo.Hash => Core.Hash.Parse(Hash);
 
-        public void AddLocation(FileLocation indexedFile)
+        public void AddLocation(FileLocation location)
         {
-            if (Files.Any(x => x.Filename == indexedFile.Filename))
-                throw new ArgumentException("The file is already added.", nameof(indexedFile.Filename));
+            if (Files.Any(x => x.Filename == location.Filename))
+                throw new ArgumentException("The file is already added.", nameof(location.Filename));
 
-            _indexedFiles.Add(indexedFile);
+            _files.Add(location);
         }
 
         public FileLocation? GetFileByFilename(string filename)
@@ -55,9 +55,9 @@ namespace PhotoFolder.Core.Domain.Entities
 
         public void RemoveLocation(string filename)
         {
-            var fileLocation = _indexedFiles.FirstOrDefault(x => x.Filename == filename);
+            var fileLocation = _files.FirstOrDefault(x => x.Filename == filename);
             if (fileLocation != null)
-                _indexedFiles.Remove(fileLocation);
+                _files.Remove(fileLocation);
             else
             {
                 throw new ArgumentException("The file does not exist.", nameof(filename));

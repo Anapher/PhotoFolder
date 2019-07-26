@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -30,20 +31,20 @@ namespace PhotoFolder.Infrastructure.TemplatePath
             });
         }
 
-        public string ToString(Dictionary<string, string> placeholderValues)
+        public string ToString(IReadOnlyDictionary<string, string> placeholderValues)
         {
             return Fragments.Aggregate("", (s, x) => {
                 if (x is TextFragment)
-                    return s + x;
+                    return s + x.Value;
                 if (placeholderValues.TryGetValue(x.Value, out var placeholder))
                     return s + placeholder;
-                return "{" + x.Value + "}";
+                return s + "{" + x.Value + "}";
             });
         }
 
         public override string ToString()
         {
-            return Fragments.Aggregate("", (s, x) => s + (x is PlaceholderFragment ? "{" + x.Value + "}" : x.Value));
+            return ToString(ImmutableDictionary<string, string>.Empty);
         }
     }
 }

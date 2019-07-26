@@ -19,8 +19,10 @@ namespace PhotoFolder.Infrastructure.TemplatePath
                 if (s[index] == PlaceholderStartChar && (index == 0 || (s[index - 1] != EscapeChar)))
                 {
                     if (lastTokenIndex != index)
-                        yield return new TextFragment(s.Substring(lastTokenIndex,
-                            index - lastTokenIndex));
+                    {
+                        yield return new TextFragment(ClearEscapeChars(s.Substring(lastTokenIndex,
+                            index - lastTokenIndex)));
+                    }
 
                     var content = ReadToken(s, PlaceholderEndChar, ref index);
                     yield return new PlaceholderFragment(ClearEscapeChars(content));
@@ -30,11 +32,11 @@ namespace PhotoFolder.Infrastructure.TemplatePath
                     continue;
                 }
 
-                lastTokenIndex = index;
+                lastTokenIndex = index + 1;
             } while (++index < s.Length);
 
             if (lastTokenIndex != s.Length)
-                yield return new TextFragment(s.Substring(lastTokenIndex, index - lastTokenIndex));
+                yield return new TextFragment(ClearEscapeChars(s.Substring(lastTokenIndex, index - lastTokenIndex)));
         }
 
         private static string ClearEscapeChars(string s)
@@ -68,25 +70,31 @@ namespace PhotoFolder.Infrastructure.TemplatePath
             var buf = value;
             var valueLength = value.Length;
             var tokenStartPos = i;
+            var isNextEscaped = false;
 
             while (++i < valueLength)
             {
                 var valueChar = buf[i];
 
+                if (isNextEscaped)
+                {
+                    isNextEscaped = false;
+                    continue;
+                }
+
                 if (valueChar == EscapeChar)
                 {
-                    i++;
+                    isNextEscaped = true;
                     continue;
                 }
 
                 if (valueChar == endChar)
                 {
-                    i++;
                     break;
                 }
             }
 
-            return value.Substring(tokenStartPos + 1, i - tokenStartPos - 2);
+            return value.Substring(tokenStartPos + 1, i - tokenStartPos - 1);
         }
     }
 }
