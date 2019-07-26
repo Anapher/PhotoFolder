@@ -5,9 +5,7 @@ using PhotoFolder.Core.Errors;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using PhotoFolder.Core.UseCases;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -50,7 +48,6 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFileRepository = new Mock<IIndexedFileRepository>();
-            var mockOperationsRepository = new Mock<IFileOperationRepository>();
 
             var indexedFile = new IndexedFile(Hash.Parse("FF"), 2312, default, null);
             indexedFile.AddLocation(new FileLocation("test.xml", "FF", default, default));
@@ -58,7 +55,6 @@ namespace PhotoFolder.Core.Tests.UseCases
             mockFileRepository.Setup(x => x.FirstOrDefaultBySpecs(It.IsAny<ISpecification<IndexedFile>[]>())).ReturnsAsync(indexedFile);
             mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
             mockDirectory.SetupGet(x => x.PathComparer).Returns(GetPathComparer());
-            mockDirectory.Setup(x => x.GetOperationRepository()).Returns(mockOperationsRepository.Object);
 
             var useCase = new RemoveFileFromIndexUseCase();
             var request = new RemoveFileFromIndexRequest("test.xml", mockDirectory.Object);
@@ -69,7 +65,6 @@ namespace PhotoFolder.Core.Tests.UseCases
             // assert
             Assert.False(useCase.HasError);
             mockFileRepository.Verify(x => x.Delete(It.IsAny<IndexedFile>()), Times.Once);
-            mockOperationsRepository.Verify(x => x.Add(It.Is<FileOperation>(y => y.Type == FileOperationType.Removed)));
         }
 
         [Fact]
@@ -78,7 +73,6 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFileRepository = new Mock<IIndexedFileRepository>();
-            var mockOperationsRepository = new Mock<IFileOperationRepository>();
 
             var indexedFile = new IndexedFile(Hash.Parse("FF"), 2312, default, null);
             indexedFile.AddLocation(new FileLocation("test.xml", "FF", default, default));
@@ -87,7 +81,6 @@ namespace PhotoFolder.Core.Tests.UseCases
             mockFileRepository.Setup(x => x.FirstOrDefaultBySpecs(It.IsAny<ISpecification<IndexedFile>[]>())).ReturnsAsync(indexedFile);
             mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
             mockDirectory.SetupGet(x => x.PathComparer).Returns(GetPathComparer());
-            mockDirectory.Setup(x => x.GetOperationRepository()).Returns(mockOperationsRepository.Object);
 
             var useCase = new RemoveFileFromIndexUseCase();
             var request = new RemoveFileFromIndexRequest("test.xml", mockDirectory.Object);
@@ -100,7 +93,6 @@ namespace PhotoFolder.Core.Tests.UseCases
             mockFileRepository.Verify(x => x.Update(It.IsAny<IndexedFile>()), Times.Once);
             var keptIndexedFile = Assert.Single(indexedFile.Files);
             Assert.Equal("test2.xml", keptIndexedFile.Filename);
-            mockOperationsRepository.Verify(x => x.Add(It.Is<FileOperation>(y => y.Type == FileOperationType.Removed)));
         }
     }
 }

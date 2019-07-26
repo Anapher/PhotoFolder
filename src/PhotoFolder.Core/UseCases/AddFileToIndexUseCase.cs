@@ -9,8 +9,6 @@ using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Interfaces.UseCases;
 using PhotoFolder.Core.Specifications.FileInformation;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace PhotoFolder.Core.UseCases
@@ -19,14 +17,11 @@ namespace PhotoFolder.Core.UseCases
     {
         private readonly IFileInformationLoader _fileInformationLoader;
         private readonly IFileHasher _fileHasher;
-        private readonly IEqualityComparer<IFileContentInfo> _fileContentComparer;
 
-        public AddFileToIndexUseCase(IFileInformationLoader fileInformationLoader, IFileHasher fileHasher,
-            IEqualityComparer<IFileContentInfo> fileContentComparer)
+        public AddFileToIndexUseCase(IFileInformationLoader fileInformationLoader, IFileHasher fileHasher)
         {
             _fileInformationLoader = fileInformationLoader;
             _fileHasher = fileHasher;
-            _fileContentComparer = fileContentComparer;
         }
 
         public async Task<AddFileToIndexResponse?> Handle(AddFileToIndexRequest message)
@@ -67,35 +62,12 @@ namespace PhotoFolder.Core.UseCases
                 file.CreatedOn, file.ModifiedOn);
             indexedFile.AddLocation(fileLocation);
 
-            // get operation
-            FileOperation? fileOperation = null;
-            if (message.RemovedFiles.Any())
-            {
-                var removedFile = message
-                    .RemovedFiles
-                    .FirstOrDefault(x => _fileContentComparer.Equals(x, indexedFile));
-
-                if (removedFile != null)
-                {
-                    if (directory.PathComparer.Equals(removedFile.Filename, removedFile.Filename))
-                        fileOperation = FileOperation.FileChanged(fileLocation, removedFile);
-                    else
-                        fileOperation = FileOperation.FileMoved(fileLocation, removedFile);
-                }
-            }
-
-            if (fileOperation == null)
-                fileOperation = FileOperation.NewFile(fileLocation);
-
             if (isIndexedFileInDb)
                 await repository.Update(indexedFile);
             else
                 await repository.Add(indexedFile);
 
-            var operationsRepository = directory.GetOperationRepository();
-            await operationsRepository.Add(fileOperation);
-
-            return new AddFileToIndexResponse();
+            return new AddFileToIndexResponse(indexedFile, fileLocation);
         }
 
         private Hash ComputeHash(IFile file)

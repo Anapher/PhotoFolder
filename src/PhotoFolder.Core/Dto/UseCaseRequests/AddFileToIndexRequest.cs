@@ -8,18 +8,13 @@ namespace PhotoFolder.Core.Dto.UseCaseRequests
 {
     public class AddFileToIndexRequest : IUseCaseRequest<AddFileToIndexResponse>
     {
-        public AddFileToIndexRequest(string filename, IPhotoDirectory directory,
-           IImmutableList<FileInformation>? removedFiles = null)
+        public AddFileToIndexRequest(string filename, IPhotoDirectory directory)
         {
             Filename = filename;
             Directory = directory;
-
-            RemovedFiles = removedFiles ?? ImmutableList<FileInformation>.Empty;
         }
 
         public string Filename { get; }
         public IPhotoDirectory Directory { get; }
-
-        public IImmutableList<FileInformation> RemovedFiles { get; }
     }
 }

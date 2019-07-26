@@ -1,5 +1,4 @@
 ﻿using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using PhotoFolder.Infrastructure.TemplatePath;
@@ -8,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace PhotoFolder.Infrastructure.Photos
 {

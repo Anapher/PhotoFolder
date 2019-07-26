@@ -3,9 +3,9 @@ using PhotoFolder.Application.Shared;
 using PhotoFolder.Application.Utilities;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto;
+using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.UseCaseRequests;
 using PhotoFolder.Core.Interfaces.Gateways;
-using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Interfaces.UseCases;
 using PhotoFolder.Core.Specifications.FileInformation;
 using PhotoFolder.Core.Utilities;
@@ -20,11 +20,13 @@ namespace PhotoFolder.Application.Workers
     public class SynchronizeIndexWorker
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEqualityComparer<IFileContentInfo> _fileContentComparer;
 
-        public SynchronizeIndexWorker(IServiceProvider serviceProvider)
+        public SynchronizeIndexWorker(IServiceProvider serviceProvider, IEqualityComparer<IFileContentInfo> fileContentComparer)
         {
             State = new SynchronizeIndexState();
             _serviceProvider = serviceProvider;
+            _fileContentComparer = fileContentComparer;
         }
 
         public SynchronizeIndexState State { get; set; }
@@ -32,6 +34,7 @@ namespace PhotoFolder.Application.Workers
         public async Task Execute(IPhotoDirectory directory)
         {
             var repository = directory.GetFileRepository();
+            var operationsRepository = directory.GetOperationRepository();
 
             State.Status = SynchronizeIndexStatus.Scanning;
 
@@ -58,7 +61,7 @@ namespace PhotoFolder.Application.Workers
                     State.Errors.Add(removedFile.Filename, action.Error!);
             }
 
-            var removedIndexedFiles = removedFiles
+            IImmutableList<FileInformation> removedFilesInformation = removedFiles
                 .Select(x => indexedFiles.First(y => y.GetFileByFilename(x.Filename) != null).ToFileInformation(x.Filename))
                 .ToImmutableList();
 
@@ -71,12 +74,50 @@ namespace PhotoFolder.Application.Workers
                 var newFile = newFiles[i];
 
                 var action = _serviceProvider.GetRequiredService<IAddFileToIndexUseCase>();
-                await action.Handle(new AddFileToIndexRequest(
-                    newFile.Filename, directory, removedIndexedFiles));
+                var response = await action.Handle(new AddFileToIndexRequest(newFile.Filename, directory));
 
                 if (action.HasError)
+                {
                     State.Errors.Add(newFile.Filename, action.Error!);
+                    continue;
+                }
+
+                var (indexedFile, fileLocation) = response!;
+
+                FileOperation fileOperation;
+                (fileOperation, removedFilesInformation) = GetFileOperation(removedFilesInformation, indexedFile, fileLocation,
+                    directory.PathComparer, _fileContentComparer);
+
+                await operationsRepository.Add(fileOperation);
             }
+
+            foreach (var removedFile in removedFilesInformation)
+            {
+                await operationsRepository.Add(FileOperation.FileRemoved(removedFile));
+            }
+        }
+
+        private static (FileOperation op, IImmutableList<FileInformation> removedFiles) GetFileOperation(
+            IImmutableList<FileInformation> removedFiles, IndexedFile indexedFile, FileLocation fileLocation,
+            IEqualityComparer<string> pathComparer, IEqualityComparer<IFileContentInfo> fileContentComparer)
+        {
+            // get operation
+            if (removedFiles.Any())
+            {
+                var removedFile = removedFiles.FirstOrDefault(x => fileContentComparer.Equals(x, indexedFile));
+
+                if (removedFile != null)
+                {
+                    var newRemovedFiles = removedFiles.Remove(removedFile);
+
+                    if (pathComparer.Equals(fileLocation.Filename, removedFile.Filename))
+                        return (FileOperation.FileChanged(fileLocation, removedFile), newRemovedFiles);
+                    else
+                        return (FileOperation.FileMoved(fileLocation, removedFile), newRemovedFiles);
+                }
+            }
+
+            return (FileOperation.NewFile(fileLocation), removedFiles);
         }
     }
 

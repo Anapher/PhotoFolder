@@ -1,5 +1,4 @@
-﻿using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto.UseCaseRequests;
+﻿using PhotoFolder.Core.Dto.UseCaseRequests;
 using PhotoFolder.Core.Dto.UseCaseResponses;
 using PhotoFolder.Core.Errors;
 using PhotoFolder.Core.Interfaces;
@@ -26,9 +25,9 @@ namespace PhotoFolder.Core.UseCases
                     ErrorCode.FileNotIndexed));
             }
 
-            var indexedFile = existingFile.Files.First(x => directory.PathComparer.Equals(
+            var fileLocation = existingFile.Files.First(x => directory.PathComparer.Equals(
                 message.Filename, message.Filename));
-            existingFile.RemoveLocation(indexedFile.Filename);
+            existingFile.RemoveLocation(fileLocation.Filename);
 
             if (existingFile.Files.Any())
             {
@@ -38,9 +37,6 @@ namespace PhotoFolder.Core.UseCases
             {
                 await repository.Delete(existingFile);
             }
-
-            var operationsRepo = directory.GetOperationRepository();
-            await operationsRepo.Add(FileOperation.FileRemoved(indexedFile));
 
             return new RemoveFileFromIndexResponse();
         }

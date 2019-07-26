@@ -9,7 +9,7 @@
         }
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
-        public FileReference()
+        protected FileReference()
         {
         }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
