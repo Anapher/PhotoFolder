@@ -7,6 +7,10 @@
   <Import Project="../nullable.props" />
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PhotoFolder.Core\PhotoFolder.Core.csproj" />
   </ItemGroup>
 </Project>

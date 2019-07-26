@@ -1,11 +1,14 @@
-﻿using PhotoFolder.Core.Dto.Services;
+﻿using PhotoFolder.Core.Domain.Entities;
+using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
+using PhotoFolder.Infrastructure.TemplatePath;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace PhotoFolder.Infrastructure.Photos
 {
@@ -13,14 +16,16 @@ namespace PhotoFolder.Infrastructure.Photos
     {
         private readonly IFileSystem _fileSystem;
         private readonly string _rootDirectory;
+        private readonly TemplateString _photoFilenameTemplate;
 
-        public PhotoDirectory(IFileSystem fileSystem, string rootDirectory)
+        public PhotoDirectory(IFileSystem fileSystem, string rootDirectory, string photoFilenameTemplate)
         {
             _fileSystem = fileSystem;
             _rootDirectory = rootDirectory;
+
+            _photoFilenameTemplate = TemplateString.Parse(photoFilenameTemplate);
         }
 
-        // TODO Operating System settings
         public IEqualityComparer<string> PathComparer => StringComparer.OrdinalIgnoreCase;
 
         public IEnumerable<Core.Dto.Services.IFile> EnumerateFiles()
@@ -38,6 +43,19 @@ namespace PhotoFolder.Infrastructure.Photos
             if (!fileInfo.Exists) return null;
 
             return new Files.FileInfoWrapper(fileInfo, _rootDirectory);
+        }
+
+        public Regex GetFilePathMatcher(FileInformation fileInformation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetRecommendedPath(FileInformation fileInformation)
+        {
+            // fill palceholders
+            // split \/
+            // trim everything except alphanumerics
+            // forge together with _fileSystem separator
         }
 
         public IIndexedFileRepository GetFileRepository()
