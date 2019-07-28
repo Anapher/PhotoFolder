@@ -1,10 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace PhotoFolder.Application.Interfaces
 {
-    public interface IWorker<TState>
+    public interface IStateful<TState>
     {
+        TState State { get; }
+    }
+
+    public interface IWorker<TState, TRequest, TResponse> : IStateful<TState>
+    {
+        Task<TResponse> Execute(TRequest request, CancellationToken cancellationToken = default);
     }
 }

@@ -1,14 +1,15 @@
-﻿using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto;
+﻿#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+
+using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.UseCaseRequests;
 using PhotoFolder.Core.Dto.UseCaseResponses;
 using PhotoFolder.Core.Interfaces;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Interfaces.UseCases;
-using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace PhotoFolder.Core.UseCases
@@ -31,31 +32,48 @@ namespace PhotoFolder.Core.UseCases
 
             var simliarFiles = new Dictionary<IndexedFile, float>();
             var equalFiles = new List<FileLocation>();
+            var isWrongPlaced = false;
+            IReadOnlyList<string>? recommendedDirectories = null;
+            string? recommendedFilename = null;
 
-                foreach (var indexedFile in message.IndexedFiles)
+            foreach (var indexedFile in message.IndexedFiles)
+            {
+                if (indexedFile.Hash == message.FileInformation.Hash)
                 {
-                    if (indexedFile.Hash == message.FileInformation.Hash)
-                    {
-                        equalFiles = indexedFile.Files.Where(x => directory.PathComparer.Equals(x.Filename, fileInformation.Filename)).ToList();
-                        continue;
-                    }
-
-                if (fileInformation.PhotoProperties == null)
+                    equalFiles = indexedFile.Files.Where(x => !directory.PathComparer.Equals(x.Filename, fileInformation.Filename)).ToList();
                     continue;
-
-                    if (indexedFile.PhotoProperties == null)
-                        continue;
-
-                    var result = _bitmapHashComparer.Compare(indexedFile.PhotoProperties.BitmapHash,
-                        fileInformation.PhotoProperties.BitmapHash);
-
-                    if (result > SimliarityThreshhold)
-                        simliarFiles.Add(indexedFile, result);
                 }
 
-            var pathMatcher = directory.GetFilePathRegexPattern(fileInformation);
+                if (fileInformation.PhotoProperties == null || indexedFile.PhotoProperties == null)
+                    continue;
 
-            return null;
+                var result = _bitmapHashComparer.Compare(indexedFile.PhotoProperties.BitmapHash,
+                    fileInformation.PhotoProperties.BitmapHash);
+
+                if (result > SimliarityThreshhold)
+                    simliarFiles.Add(indexedFile, result);
+            }
+
+            var pathPattern = directory.GetFileDirectoryRegexPattern(fileInformation);
+            var pathRegex = new Regex(pathPattern);
+
+            if (!pathRegex.IsMatch(Path.GetFileName(message.FileInformation.Filename)))
+            {
+                isWrongPlaced = true;
+
+                // query all files that have a directory that would
+                recommendedDirectories = message.IndexedFiles.SelectMany(x => x.Files).Select(x => Path.GetDirectoryName(x.Filename))
+                    .Where(x => pathRegex.IsMatch(x)).Distinct().ToList();
+            }
+
+            var filenamePattern = directory.GetFilenameRegexPattern(fileInformation);
+            if (!Regex.IsMatch(Path.GetFileName(message.FileInformation.Filename), filenamePattern))
+            {
+                recommendedFilename = Path.GetFileName(directory.GetRecommendedPath(fileInformation));
+            }
+
+            return new CheckFileIntegrityResponse(equalFiles, simliarFiles, isWrongPlaced,
+                recommendedDirectories, recommendedFilename);
         }
     }
 }

@@ -1,6 +1,9 @@
-﻿using PhotoFolder.Core.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
+using PhotoFolder.Infrastructure.Data;
+using PhotoFolder.Infrastructure.Data.Repositories;
 using PhotoFolder.Infrastructure.TemplatePath;
 using PhotoFolder.Infrastructure.Utilities;
 using System;
@@ -15,13 +18,16 @@ namespace PhotoFolder.Infrastructure.Photos
         private readonly IFileSystem _fileSystem;
         private readonly string _rootDirectory;
         private readonly TemplateString _photoFilenameTemplate;
+        private readonly DbContextOptions<AppDbContext> _dbOptions;
 
-        public PhotoDirectory(IFileSystem fileSystem, string rootDirectory, string photoFilenameTemplate)
+        public PhotoDirectory(IFileSystem fileSystem, string rootDirectory, string photoFilenameTemplate,
+            DbContextOptions<AppDbContext> dbOptions)
         {
             _fileSystem = fileSystem;
             _rootDirectory = rootDirectory;
 
             _photoFilenameTemplate = TemplateString.Parse(photoFilenameTemplate);
+            _dbOptions = dbOptions;
         }
 
         public IEqualityComparer<string> PathComparer => StringComparer.OrdinalIgnoreCase;
@@ -43,12 +49,20 @@ namespace PhotoFolder.Infrastructure.Photos
             return new Files.FileInfoWrapper(fileInfo, _rootDirectory);
         }
 
-        public string GetFilePathRegexPattern(FileInformation fileInformation)
+        public string GetFileDirectoryRegexPattern(FileInformation fileInformation)
         {
             var values = FilePlaceholderFiller.GetPlaceholders(_photoFilenameTemplate.Fragments.OfType<PlaceholderFragment>().Select(x => x.Value), fileInformation);
             var path = _photoFilenameTemplate.ToString(values.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value!));
 
-            return TemplateString.Parse(path).ToRegexPattern();
+            return TemplateString.Parse(_fileSystem.Path.GetDirectoryName(path)).ToRegexPattern();
+        }
+
+        public string GetFilenameRegexPattern(FileInformation fileInformation)
+        {
+            var values = FilePlaceholderFiller.GetPlaceholders(_photoFilenameTemplate.Fragments.OfType<PlaceholderFragment>().Select(x => x.Value), fileInformation);
+            var path = _photoFilenameTemplate.ToString(values.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value!));
+
+            return TemplateString.Parse(_fileSystem.Path.GetFileName(path)).ToRegexPattern();
         }
 
         public string GetRecommendedPath(FileInformation fileInformation)
@@ -63,12 +77,17 @@ namespace PhotoFolder.Infrastructure.Photos
 
         public IIndexedFileRepository GetFileRepository()
         {
-            throw new NotImplementedException();
+            return new IndexedFileRepository(GetAppDbContext());
         }
 
         public IFileOperationRepository GetOperationRepository()
         {
-            throw new NotImplementedException();
+            return new FileOperationRepository(GetAppDbContext());
+        }
+
+        private AppDbContext GetAppDbContext()
+        {
+            return new AppDbContext(_dbOptions);
         }
     }
 }

@@ -37,7 +37,7 @@ namespace PhotoFolder.Core.Tests.UseCases
         private static Mock<IFileInformationLoader> GetFileLoader(FileInformation returnValue = null)
         {
             if (returnValue == null)
-                returnValue = new FileInformation("test.xml", default, default, "ABBA", 324, default, null);
+                returnValue = new FileInformation("test.xml", default, default, Hash.Parse("ABBA"), 324, default, null);
 
             var mock = new Mock<IFileInformationLoader>();
             mock.Setup(x => x.Load(It.IsAny<IFile>())).ReturnsAsync(returnValue);

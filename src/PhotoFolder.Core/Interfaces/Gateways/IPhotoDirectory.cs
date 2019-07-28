@@ -2,7 +2,6 @@
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace PhotoFolder.Core.Interfaces.Gateways
 {
@@ -13,7 +12,9 @@ namespace PhotoFolder.Core.Interfaces.Gateways
         IEnumerable<IFile> EnumerateFiles();
         IFile? GetFile(string filename);
 
-        string GetFilePathRegexPattern(FileInformation fileInformation);
+        string GetFileDirectoryRegexPattern(FileInformation fileInformation);
+        string GetFilenameRegexPattern(FileInformation fileInformation);
+
         string GetRecommendedPath(FileInformation fileInformation);
 
         IIndexedFileRepository GetFileRepository();

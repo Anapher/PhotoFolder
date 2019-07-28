@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PhotoFolder.Infrastructure.Shared
 {
-    public class EfIdentityRepository<T> : EfRepository<T> where T : BaseEntity, IIdentityRepository<T>
+    public class EfIdentityRepository<T> : EfRepository<T>, IIdentityRepository<T> where T : BaseEntity
     {
         protected EfIdentityRepository(AppDbContext appDbContext) : base(appDbContext)
         {

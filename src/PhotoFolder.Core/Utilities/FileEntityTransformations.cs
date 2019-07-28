@@ -15,7 +15,7 @@ namespace PhotoFolder.Core.Utilities
                 throw new ArgumentException($"The indexed file is not located at {filename}");
 
             return new FileInformation(
-                filename, fileLocation.CreatedOn, fileLocation.ModifiedOn, file.Hash, file.Length, file.CreatedOn, file.PhotoProperties);
+                filename, fileLocation.CreatedOn, fileLocation.ModifiedOn, Hash.Parse(file.Hash), file.Length, file.CreatedOn, file.PhotoProperties);
         }
 
         public static IEnumerable<IFileInfo> ToFileInfos(this IndexedFile file)

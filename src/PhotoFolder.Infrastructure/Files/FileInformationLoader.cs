@@ -63,7 +63,7 @@ namespace PhotoFolder.Infrastructure.Files
                 fileHash = _fileHasher.ComputeHash(targetStream);
             }
 
-            return new FileInformation(file.Filename, file.CreatedOn, file.ModifiedOn, fileHash.ToString(), file.Length,
+            return new FileInformation(file.Filename, file.CreatedOn, file.ModifiedOn, fileHash, file.Length,
                                        fileCreatedOn, properties);
         }
 

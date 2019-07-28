@@ -5,7 +5,7 @@ namespace PhotoFolder.Core.Domain.Entities
 {
     public class FileInformation : FileReference, IFileInfo, IFileContentInfo
     {
-        public FileInformation(string filename, DateTimeOffset createdOn, DateTimeOffset modifiedOn, string hash,
+        public FileInformation(string filename, DateTimeOffset createdOn, DateTimeOffset modifiedOn, Hash hash,
                                long length, DateTimeOffset fileCreatedOn, PhotoProperties? photoProperties)
         {
             Filename = filename;

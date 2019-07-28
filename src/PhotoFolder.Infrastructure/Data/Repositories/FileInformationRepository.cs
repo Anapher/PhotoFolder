@@ -8,7 +8,7 @@ namespace PhotoFolder.Infrastructure.Data.Repositories
 {
     public class IndexedFileRepository : EfRepository<IndexedFile>, IIndexedFileRepository
     {
-        protected IndexedFileRepository(AppDbContext appDbContext) : base(appDbContext)
+        public IndexedFileRepository(AppDbContext appDbContext) : base(appDbContext)
         {
         }
 

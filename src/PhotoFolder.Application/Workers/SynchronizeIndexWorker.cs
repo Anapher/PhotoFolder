@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PhotoFolder.Application.Shared;
+using PhotoFolder.Application.Dto.WorkerRequests;
+using PhotoFolder.Application.Dto.WorkerResponses;
+using PhotoFolder.Application.Dto.WorkerStates;
+using PhotoFolder.Application.Interfaces;
 using PhotoFolder.Application.Utilities;
 using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.UseCaseRequests;
-using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.UseCases;
 using PhotoFolder.Core.Specifications.FileInformation;
 using PhotoFolder.Core.Utilities;
@@ -13,11 +14,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PhotoFolder.Application.Workers
 {
-    public class SynchronizeIndexWorker
+    public class SynchronizeIndexWorker : IWorker<SynchronizeIndexState, SynchronizeIndexRequest, SynchronizeIndexResponse>
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IEqualityComparer<IFileContentInfo> _fileContentComparer;
@@ -29,10 +31,12 @@ namespace PhotoFolder.Application.Workers
             _fileContentComparer = fileContentComparer;
         }
 
-        public SynchronizeIndexState State { get; set; }
+        public SynchronizeIndexState State { get; }
 
-        public async Task Execute(IPhotoDirectory directory)
+        public async Task<SynchronizeIndexResponse> Execute(SynchronizeIndexRequest request, CancellationToken cancellationToken = default)
         {
+            var directory = request.Directory;
+
             var repository = directory.GetFileRepository();
             var operationsRepository = directory.GetOperationRepository();
 
@@ -43,7 +47,7 @@ namespace PhotoFolder.Application.Workers
             var indexedFileInfos = indexedFiles.SelectMany(x => x.ToFileInfos());
 
             // get all files from the actual directory
-            var localFiles = directory.EnumerateFiles().ToList();
+            var localFiles = directory.EnumerateFiles().WithCancellation(cancellationToken).ToList();
 
             State.Status = SynchronizeIndexStatus.Synchronizing;
 
@@ -95,6 +99,8 @@ namespace PhotoFolder.Application.Workers
             {
                 await operationsRepository.Add(FileOperation.FileRemoved(removedFile));
             }
+
+            return new SynchronizeIndexResponse();
         }
 
         private static (FileOperation op, IImmutableList<FileInformation> removedFiles) GetFileOperation(
@@ -119,32 +125,5 @@ namespace PhotoFolder.Application.Workers
 
             return (FileOperation.NewFile(fileLocation), removedFiles);
         }
-    }
-
-    public class SynchronizeIndexState : PropertyChangedBase
-    {
-        private SynchronizeIndexStatus _status;
-        private double _progress;
-
-        public SynchronizeIndexStatus Status
-        {
-            get => _status;
-            internal set => SetProperty(ref _status, value);
-        }
-
-        public double Progress
-        {
-            get => _progress;
-            internal set => SetProperty(ref _progress, value);
-        }
-
-        public Dictionary<string, Error> Errors { get; } = new Dictionary<string, Error>();
-    }
-
-    public enum SynchronizeIndexStatus
-    {
-        Scanning,
-        Synchronizing,
-        IndexingNewFiles
     }
 }

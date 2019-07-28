@@ -22,13 +22,13 @@ namespace PhotoFolder.Infrastructure.TemplatePath
 
         public string ToRegexPattern()
         {
-            return Fragments.Aggregate("", (s, x) =>
+            return Fragments.Aggregate("^", (s, x) =>
             {
                 if (x is TextFragment)
                     return s + Regex.Escape(x.Value);
 
                 return s + ".+?";
-            });
+            }) + "$";
         }
 
         public string ToString(IReadOnlyDictionary<string, string> placeholderValues)

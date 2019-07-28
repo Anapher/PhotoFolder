@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <Import Project="../nullable.props" />
+
+  <ItemGroup>
+    <None Remove="Views\ConfigureFolderDialog.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0455" />
+    <PackageReference Include="Prism.DryIoc" Version="7.2.0.1367" />
+    <PackageReference Include="Prism.Wpf" Version="7.2.0.1367" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PhotoFolder.Application\PhotoFolder.Application.csproj" />
+    <ProjectReference Include="..\PhotoFolder.Infrastructure\PhotoFolder.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -61,5 +61,32 @@ namespace PhotoFolder.Infrastructure.Tests.TemplatePath
             // assert
             Assert.Equal("bonjour hello, welcome to this world", result);
         }
+
+        [Fact]
+        public void GivenPlaceholders_ProduceRegex()
+        {
+            // arrange
+            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/"), new PlaceholderFragment("eventName"),
+                new TextFragment("/file.txt")});
+
+            // act
+            var result = s.ToRegexPattern();
+
+            // assert
+            Assert.Equal("^path/to/.+?/file\\.txt$", result);
+        }
+
+        [Fact]
+        public void GivenNoPlaceholders_ProduceRegex()
+        {
+            // arrange
+            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/(12.23.2)/"), new TextFragment("file.txt")});
+
+            // act
+            var result = s.ToRegexPattern();
+
+            // assert
+            Assert.Equal("^path/to/\\(12\\.23\\.2\\)/file\\.txt$", result);
+        }
     }
 }
