@@ -2,6 +2,7 @@
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
+using PhotoFolder.Infrastructure.Consts;
 using PhotoFolder.Infrastructure.Data;
 using PhotoFolder.Infrastructure.Data.Repositories;
 using PhotoFolder.Infrastructure.TemplatePath;
@@ -20,13 +21,13 @@ namespace PhotoFolder.Infrastructure.Photos
         private readonly TemplateString _photoFilenameTemplate;
         private readonly DbContextOptions<AppDbContext> _dbOptions;
 
-        public PhotoDirectory(IFileSystem fileSystem, string rootDirectory, string photoFilenameTemplate,
+        public PhotoDirectory(IFileSystem fileSystem, string rootDirectory, PhotoDirectoryConfig config,
             DbContextOptions<AppDbContext> dbOptions)
         {
             _fileSystem = fileSystem;
             _rootDirectory = rootDirectory;
 
-            _photoFilenameTemplate = TemplateString.Parse(photoFilenameTemplate);
+            _photoFilenameTemplate = TemplateString.Parse(config.TemplatePath);
             _dbOptions = dbOptions;
         }
 
@@ -38,12 +39,13 @@ namespace PhotoFolder.Infrastructure.Photos
                 .DirectoryInfo
                 .FromDirectoryName(_rootDirectory)
                 .EnumerateFiles("*", System.IO.SearchOption.AllDirectories)
+                .Where(x => x.Name != PhotoFolderConsts.ConfigFileName)
                 .Select(x => new Files.FileInfoWrapper(x, _rootDirectory));
         }
 
         public Core.Dto.Services.IFile? GetFile(string filename)
         {
-            var fileInfo = _fileSystem.FileInfo.FromFileName(filename);
+            var fileInfo = _fileSystem.FileInfo.FromFileName(_fileSystem.Path.Combine(_rootDirectory, filename));
             if (!fileInfo.Exists) return null;
 
             return new Files.FileInfoWrapper(fileInfo, _rootDirectory);
@@ -75,19 +77,14 @@ namespace PhotoFolder.Infrastructure.Photos
                 PathUtilities.RemoveInvalidChars(_fileSystem.Path.GetInvalidFileNameChars()));
         }
 
-        public IIndexedFileRepository GetFileRepository()
-        {
-            return new IndexedFileRepository(GetAppDbContext());
-        }
-
-        public IFileOperationRepository GetOperationRepository()
-        {
-            return new FileOperationRepository(GetAppDbContext());
-        }
-
-        private AppDbContext GetAppDbContext()
+        public AppDbContext GetAppDbContext()
         {
             return new AppDbContext(_dbOptions);
+        }
+
+        public IPhotoDirectoryDataContext GetDataContext()
+        {
+            return new PhotoDirectoryDataContext(GetAppDbContext());
         }
     }
 }

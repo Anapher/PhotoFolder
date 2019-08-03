@@ -28,9 +28,11 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFileRepository = new Mock<IIndexedFileRepository>();
+            var mockDataContext = new Mock<IPhotoDirectoryDataContext>();
 
+            mockDataContext.SetupGet(x => x.FileRepository).Returns(mockFileRepository.Object);
             mockFileRepository.Setup(x => x.FirstOrDefaultBySpecs(It.IsAny<ISpecification<IndexedFile>[]>())).ReturnsAsync((IndexedFile) null);
-            mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(mockDataContext.Object);
 
             var useCase = new RemoveFileFromIndexUseCase();
             var request = new RemoveFileFromIndexRequest("test.xml", mockDirectory.Object);
@@ -48,12 +50,14 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFileRepository = new Mock<IIndexedFileRepository>();
+            var mockDataContext = new Mock<IPhotoDirectoryDataContext>();
 
+            mockDataContext.SetupGet(x => x.FileRepository).Returns(mockFileRepository.Object);
             var indexedFile = new IndexedFile(Hash.Parse("FF"), 2312, default, null);
             indexedFile.AddLocation(new FileLocation("test.xml", "FF", default, default));
 
             mockFileRepository.Setup(x => x.FirstOrDefaultBySpecs(It.IsAny<ISpecification<IndexedFile>[]>())).ReturnsAsync(indexedFile);
-            mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(mockDataContext.Object);
             mockDirectory.SetupGet(x => x.PathComparer).Returns(GetPathComparer());
 
             var useCase = new RemoveFileFromIndexUseCase();
@@ -73,13 +77,15 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFileRepository = new Mock<IIndexedFileRepository>();
+            var mockDataContext = new Mock<IPhotoDirectoryDataContext>();
 
+            mockDataContext.SetupGet(x => x.FileRepository).Returns(mockFileRepository.Object);
             var indexedFile = new IndexedFile(Hash.Parse("FF"), 2312, default, null);
             indexedFile.AddLocation(new FileLocation("test.xml", "FF", default, default));
             indexedFile.AddLocation(new FileLocation("test2.xml", "FF", default, default));
 
             mockFileRepository.Setup(x => x.FirstOrDefaultBySpecs(It.IsAny<ISpecification<IndexedFile>[]>())).ReturnsAsync(indexedFile);
-            mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(mockDataContext.Object);
             mockDirectory.SetupGet(x => x.PathComparer).Returns(GetPathComparer());
 
             var useCase = new RemoveFileFromIndexUseCase();

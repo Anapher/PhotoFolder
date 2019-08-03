@@ -2,7 +2,7 @@
 using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Dto.WorkerResponses;
 using PhotoFolder.Application.Dto.WorkerStates;
-using PhotoFolder.Application.Interfaces;
+using PhotoFolder.Application.Interfaces.Workers;
 using PhotoFolder.Application.Utilities;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.Services;
@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace PhotoFolder.Application.Workers
 {
-    public class SynchronizeIndexWorker : IWorker<SynchronizeIndexState, SynchronizeIndexRequest, SynchronizeIndexResponse>
+    public class SynchronizeIndexWorker : ISynchronizeIndexWorker
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IEqualityComparer<IFileContentInfo> _fileContentComparer;
@@ -37,67 +37,68 @@ namespace PhotoFolder.Application.Workers
         {
             var directory = request.Directory;
 
-            var repository = directory.GetFileRepository();
-            var operationsRepository = directory.GetOperationRepository();
-
-            State.Status = SynchronizeIndexStatus.Scanning;
-
-            // get all files from the repository
-            var indexedFiles = await repository.GetAllBySpecs(new IncludeFileLocationsSpec());
-            var indexedFileInfos = indexedFiles.SelectMany(x => x.ToFileInfos());
-
-            // get all files from the actual directory
-            var localFiles = directory.EnumerateFiles().WithCancellation(cancellationToken).ToList();
-
-            State.Status = SynchronizeIndexStatus.Synchronizing;
-
-            // get changes
-            var (newFiles, removedFiles) = CollectionDiff.Create(indexedFileInfos, localFiles,
-                new FileInfoComparer());
-
-            // remove files from index
-            foreach (var removedFile in removedFiles)
+            using (var dataContext = directory.GetDataContext())
             {
-                var action = _serviceProvider.GetRequiredService<IRemoveFileFromIndexUseCase>();
-                await action.Handle(new RemoveFileFromIndexRequest(removedFile.Filename, directory));
+                State.Status = SynchronizeIndexStatus.Scanning;
 
-                if (action.HasError)
-                    State.Errors.Add(removedFile.Filename, action.Error!);
-            }
+                // get all files from the repository
+                var indexedFiles = await dataContext.FileRepository.GetAllBySpecs(new IncludeFileLocationsSpec());
+                var indexedFileInfos = indexedFiles.SelectMany(x => x.ToFileInfos());
 
-            IImmutableList<FileInformation> removedFilesInformation = removedFiles
-                .Select(x => indexedFiles.First(y => y.GetFileByFilename(x.Filename) != null).ToFileInformation(x.Filename))
-                .ToImmutableList();
+                // get all files from the actual directory
+                var localFiles = directory.EnumerateFiles().WithCancellation(cancellationToken).ToList();
 
-            State.Status = SynchronizeIndexStatus.IndexingNewFiles;
-            // add files to index
-            for (int i = 0; i < newFiles.Count; i++)
-            {
-                State.Progress = (double) i / newFiles.Count;
+                State.Status = SynchronizeIndexStatus.Synchronizing;
 
-                var newFile = newFiles[i];
+                // get changes
+                var (newFiles, removedFiles) = CollectionDiff.Create(indexedFileInfos, localFiles,
+                    new FileInfoComparer());
 
-                var action = _serviceProvider.GetRequiredService<IAddFileToIndexUseCase>();
-                var response = await action.Handle(new AddFileToIndexRequest(newFile.Filename, directory));
-
-                if (action.HasError)
+                // remove files from index
+                foreach (var removedFile in removedFiles)
                 {
-                    State.Errors.Add(newFile.Filename, action.Error!);
-                    continue;
+                    var action = _serviceProvider.GetRequiredService<IRemoveFileFromIndexUseCase>();
+                    await action.Handle(new RemoveFileFromIndexRequest(removedFile.Filename, directory));
+
+                    if (action.HasError)
+                        State.Errors.Add(removedFile.Filename, action.Error!);
                 }
 
-                var (indexedFile, fileLocation) = response!;
+                IImmutableList<FileInformation> removedFilesInformation = removedFiles
+                    .Select(x => indexedFiles.First(y => y.GetFileByFilename(x.Filename) != null).ToFileInformation(x.Filename))
+                    .ToImmutableList();
 
-                FileOperation fileOperation;
-                (fileOperation, removedFilesInformation) = GetFileOperation(removedFilesInformation, indexedFile, fileLocation,
-                    directory.PathComparer, _fileContentComparer);
+                State.Status = SynchronizeIndexStatus.IndexingNewFiles;
+                // add files to index
+                for (int i = 0; i < newFiles.Count; i++)
+                {
+                    State.Progress = (double)i / newFiles.Count;
 
-                await operationsRepository.Add(fileOperation);
-            }
+                    var newFile = newFiles[i];
 
-            foreach (var removedFile in removedFilesInformation)
-            {
-                await operationsRepository.Add(FileOperation.FileRemoved(removedFile));
+                    var action = _serviceProvider.GetRequiredService<IAddFileToIndexUseCase>();
+                    var response = await action.Handle(new AddFileToIndexRequest(newFile.Filename, directory));
+
+                    if (action.HasError)
+                    {
+                        State.Errors.Add(newFile.Filename, action.Error!);
+                        continue;
+                    }
+
+                    var (indexedFile, fileLocation) = response!;
+
+                    FileOperation fileOperation;
+                    (fileOperation, removedFilesInformation) = GetFileOperation(removedFilesInformation, indexedFile, fileLocation,
+                        directory.PathComparer, _fileContentComparer);
+
+                    await dataContext.OperationRepository.Add(fileOperation);
+                }
+
+                foreach (var removedFile in removedFilesInformation)
+                {
+                    await dataContext.OperationRepository.Add(FileOperation.FileRemoved(removedFile));
+                }
+
             }
 
             return new SynchronizeIndexResponse();

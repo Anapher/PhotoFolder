@@ -1,4 +1,5 @@
 ﻿using PhotoFolder.Wpf.Services;
+using System;
 using System.Windows;
 
 namespace PhotoFolder.Wpf.Extensions
@@ -83,5 +84,8 @@ namespace PhotoFolder.Wpf.Extensions
         public static MessageBoxResult ShowMessage(this IWindowService owner, string text, string caption,
             MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defResult) =>
             owner.ShowMessageBox(text, caption, buttons, icon, defResult, MessageBoxOptions.None);
+
+        public static void ShowError(this IWindowService windowService, Exception ex)
+            => windowService.ShowMessage(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }

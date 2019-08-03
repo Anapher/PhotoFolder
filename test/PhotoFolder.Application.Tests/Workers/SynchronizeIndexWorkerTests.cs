@@ -1,4 +1,5 @@
 ﻿using Moq;
+using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Workers;
 using PhotoFolder.Core;
 using PhotoFolder.Core.Domain;
@@ -36,7 +37,10 @@ namespace PhotoFolder.Application.Tests.Workers
             var mockFileContentInfoComparer = new Mock<IEqualityComparer<IFileContentInfo>>();
             var mockFileOperationsRepository = new Mock<IFileOperationRepository>();
             var mockPathComparer = new Mock<IEqualityComparer<string>>();
+            var mockDataContext = new Mock<IPhotoDirectoryDataContext>();
 
+            mockDataContext.SetupGet(x => x.FileRepository).Returns(mockFileRepository.Object);
+            mockDataContext.SetupGet(x => x.OperationRepository).Returns(mockFileOperationsRepository.Object);
             mockServiceProvider.Setup(x => x.GetService(typeof(IRemoveFileFromIndexUseCase)))
                 .Returns(() =>
                 {
@@ -67,8 +71,7 @@ namespace PhotoFolder.Application.Tests.Workers
             mockFileOperationsRepository.Setup(x => x.Add(It.IsAny<FileOperation>())).Callback((FileOperation op) => operations.Add(op));
             mockPathComparer.Setup(x => x.Equals(It.IsAny<string>(), It.IsAny<string>())).Returns((string x, string y) => x == y);
             mockPhotoDirectory.Setup(x => x.EnumerateFiles()).Returns(localFiles);
-            mockPhotoDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
-            mockPhotoDirectory.Setup(x => x.GetOperationRepository()).Returns(mockFileOperationsRepository.Object);
+            mockPhotoDirectory.Setup(x => x.GetDataContext()).Returns(mockDataContext.Object);
             mockPhotoDirectory.SetupGet(x => x.PathComparer).Returns(mockPathComparer.Object);
             mockFileContentInfoComparer.Setup(x => x.Equals(It.IsAny<IFileContentInfo>(), It.IsAny<IFileContentInfo>()))
                 .Returns((IFileContentInfo x, IFileContentInfo y) => x.Length == y.Length
@@ -78,7 +81,7 @@ namespace PhotoFolder.Application.Tests.Workers
             var worker = new SynchronizeIndexWorker(mockServiceProvider.Object, mockFileContentInfoComparer.Object);
 
             // act
-            await worker.Execute(mockPhotoDirectory.Object);
+            await worker.Execute(new SynchronizeIndexRequest(mockPhotoDirectory.Object));
 
             // assert
             Assert.Equal(expectedAddedFiles.OrderBy(x => x), addedFiles.OrderBy(x => x));

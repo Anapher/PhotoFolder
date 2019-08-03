@@ -17,7 +17,6 @@ namespace PhotoFolder.Core.Interfaces.Gateways
 
         string GetRecommendedPath(FileInformation fileInformation);
 
-        IIndexedFileRepository GetFileRepository();
-        IFileOperationRepository GetOperationRepository();
+        IPhotoDirectoryDataContext GetDataContext();
     }
 }

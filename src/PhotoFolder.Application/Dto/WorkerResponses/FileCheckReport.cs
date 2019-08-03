@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace PhotoFolder.Application.Dto.WorkerResponses
 {
-    public class CheckIndexResponse
+    public class FileCheckReport
     {
-        public CheckIndexResponse(IReadOnlyList<(FileInformation, CheckFileIntegrityResponse)> problematicFiles)
+        public FileCheckReport(IReadOnlyList<(FileInformation, CheckFileIntegrityResponse)> problematicFiles)
         {
             ProblematicFiles = problematicFiles;
         }

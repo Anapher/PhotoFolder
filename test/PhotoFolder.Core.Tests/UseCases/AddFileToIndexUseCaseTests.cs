@@ -45,10 +45,10 @@ namespace PhotoFolder.Core.Tests.UseCases
             return mock;
         }
 
-        private static Mock<IIndexedFileRepository> GetFileRepository(IndexedFile fileWithSameFilename = null,
+        private static IPhotoDirectoryDataContext GetDataContext(out Mock<IIndexedFileRepository> mockFileRepository, IndexedFile fileWithSameFilename = null,
             IndexedFile fileWithSameHash = null)
         {
-            var mockFileRepository = new Mock<IIndexedFileRepository>();
+            mockFileRepository = new Mock<IIndexedFileRepository>();
 
             mockFileRepository
                 .Setup(x => x.FirstOrDefaultBySpecs(It.IsAny<FindByFilenameSpec>()))
@@ -59,7 +59,10 @@ namespace PhotoFolder.Core.Tests.UseCases
                     It.IsAny<IncludeFileLocationsSpec>()))
                 .ReturnsAsync(fileWithSameHash);
 
-            return mockFileRepository;
+            var mockDataContext = new Mock<IPhotoDirectoryDataContext>();
+            mockDataContext.SetupGet(x => x.FileRepository).Returns(mockFileRepository.Object);
+
+            return mockDataContext.Object;
         }
 
         [Fact]
@@ -85,11 +88,11 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFile = new Mock<IFile>();
-            var mockFileRepository = GetFileRepository(_testFileInformation);
+            var mockFileRepository = GetDataContext(out _, _testFileInformation);
 
             mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
             mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(mockFile.Object);
-            mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(mockFileRepository);
 
             var useCase = new AddFileToIndexUseCase(GetFileLoader().Object, _fileHasher);
             var request = new AddFileToIndexRequest("test.xml", mockDirectory.Object);
@@ -107,14 +110,14 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFile = new Mock<IFile>();
-            var mockFileRepository = GetFileRepository();
+            var mockFileRepository = GetDataContext(out _);
             var mockFileInformationLoader = GetFileLoader();
 
             var calls = 0;
 
             mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
             mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(() => calls++ == 0 ? mockFile.Object : null);
-            mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(mockFileRepository);
             mockFileInformationLoader.Setup(x => x.Load(It.IsAny<IFile>()))
                 .ThrowsAsync(new FileNotFoundException());
 
@@ -134,11 +137,11 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFile = new Mock<IFile>();
-            var mockFileRepository = GetFileRepository();
+            var dataContext = GetDataContext(out var mockFileRepo);
 
             mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
             mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(mockFile.Object);
-            mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(dataContext);
 
             var useCase = new AddFileToIndexUseCase(GetFileLoader().Object, _fileHasher);
             var request = new AddFileToIndexRequest("test.xml", mockDirectory.Object);
@@ -148,7 +151,7 @@ namespace PhotoFolder.Core.Tests.UseCases
 
             // assert
             Assert.False(useCase.HasError);
-            mockFileRepository.Verify(x => x.Add(It.Is<IndexedFile>(y => y.Files.Count() == 1)), Times.Once);
+            mockFileRepo.Verify(x => x.Add(It.Is<IndexedFile>(y => y.Files.Count() == 1)), Times.Once);
         }
 
         [Fact]
@@ -157,12 +160,12 @@ namespace PhotoFolder.Core.Tests.UseCases
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
             var mockFile = new Mock<IFile>();
-            var mockFileRepository = GetFileRepository(null, _testFileInformation);
+            var dataContext = GetDataContext(out var mockFileRepo, null, _testFileInformation);
             var mockFileLoader = GetFileLoader();
 
             mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
             mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(mockFile.Object);
-            mockDirectory.Setup(x => x.GetFileRepository()).Returns(mockFileRepository.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(dataContext);
 
             var useCase = new AddFileToIndexUseCase(mockFileLoader.Object, _fileHasher);
             var request = new AddFileToIndexRequest("test.xml", mockDirectory.Object);
@@ -172,7 +175,7 @@ namespace PhotoFolder.Core.Tests.UseCases
 
             // assert
             Assert.False(useCase.HasError);
-            mockFileRepository.Verify(x => x.Update(It.Is<IndexedFile>(y => y.Files.Count() == 1)), Times.Once);
+            mockFileRepo.Verify(x => x.Update(It.Is<IndexedFile>(y => y.Files.Count() == 1)), Times.Once);
             mockFileLoader.Verify(x => x.Load(It.IsAny<IFile>()), Times.Never);
         }
     }

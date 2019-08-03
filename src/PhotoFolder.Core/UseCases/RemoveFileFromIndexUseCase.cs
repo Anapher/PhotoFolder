@@ -14,28 +14,28 @@ namespace PhotoFolder.Core.UseCases
         public async Task<RemoveFileFromIndexResponse?> Handle(RemoveFileFromIndexRequest message)
         {
             var directory = message.PhotoDirectory;
-            var repository = directory.GetFileRepository();
 
-            // check if the file already exists
-            var existingFile = await repository.FirstOrDefaultBySpecs(new FindByFilenameSpec(message.Filename),
-                new IncludeFileLocationsSpec());
-            if (existingFile == null)
+            using (var dataContext = directory.GetDataContext())
             {
-                return ReturnError(new InvalidOperationError("The file is not indexed.",
-                    ErrorCode.FileNotIndexed));
-            }
+                // check if the file already exists
+                var existingFile = await dataContext.FileRepository.FirstOrDefaultBySpecs(new FindByFilenameSpec(message.Filename),
+                    new IncludeFileLocationsSpec());
+                if (existingFile == null)
+                {
+                    return ReturnError(new InvalidOperationError("The file is not indexed.",
+                        ErrorCode.FileNotIndexed));
+                }
 
-            var fileLocation = existingFile.Files.First(x => directory.PathComparer.Equals(
-                message.Filename, message.Filename));
-            existingFile.RemoveLocation(fileLocation.Filename);
+                var fileLocation = existingFile.Files.First(x => directory.PathComparer.Equals(
+                    message.Filename, message.Filename));
 
-            if (existingFile.Files.Any())
-            {
-                await repository.Update(existingFile);
-            }
-            else
-            {
-                await repository.Delete(existingFile);
+                existingFile.RemoveLocation(fileLocation.Filename);
+                await dataContext.FileRepository.RemoveFileLocation(fileLocation);
+
+                if (!existingFile.Files.Any())
+                {
+                    await dataContext.FileRepository.Delete(existingFile);
+                }
             }
 
             return new RemoveFileFromIndexResponse();

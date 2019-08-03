@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,10 +19,20 @@ namespace PhotoFolder.Infrastructure.Files
     public class FileInformationLoader : IFileInformationLoader
     {
         private readonly IFileHasher _fileHasher;
+        private readonly IFileSystem _fileSystem;
 
-        public FileInformationLoader(IFileHasher fileHasher)
+        public FileInformationLoader(IFileHasher fileHasher, IFileSystem fileSystem)
         {
             _fileHasher = fileHasher;
+            _fileSystem = fileSystem;
+        }
+
+        public async Task<FileInformation> Load(string filename)
+        {
+            var fileInfo = _fileSystem.FileInfo.FromFileName(filename);
+            if (!fileInfo.Exists) throw new FileNotFoundException();
+
+            var file = new FileInfoWrapper(fileInfo, "")
         }
 
         public async Task<FileInformation> Load(IFile file)

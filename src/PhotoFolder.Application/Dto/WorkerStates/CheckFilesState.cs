@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace PhotoFolder.Application.Dto.WorkerStates
 {
-    public class CheckIndexState : PropertyChangedBase
+    public class CheckFilesState : PropertyChangedBase
     {
-        private CheckIndexStatus _status;
+        private CheckFilesStatus _status;
         private double _progress;
 
-        public CheckIndexStatus Status
+        public CheckFilesStatus Status
         {
             get => _status;
             internal set => SetProperty(ref _status, value);
@@ -25,7 +25,7 @@ namespace PhotoFolder.Application.Dto.WorkerStates
         public Dictionary<FileInformation, Error> Errors { get; } = new Dictionary<FileInformation, Error>();
     }
 
-    public enum CheckIndexStatus
+    public enum CheckFilesStatus
     {
         Querying
     }

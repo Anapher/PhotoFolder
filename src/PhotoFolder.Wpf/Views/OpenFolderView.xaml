@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:PhotoFolder.Wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:PhotoFolder.Wpf.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
@@ -38,6 +37,7 @@
             MinWidth="100"
             Margin="0,10,0,0"
             HorizontalAlignment="Right"
+            Command="{Binding OpenFolderCommand}"
             Content="Open Folder"
             IsEnabled="{Binding FolderPath, Converter={StaticResource IsStringNotEmptyConverter}}" />
     </StackPanel>

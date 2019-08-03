@@ -1,4 +1,5 @@
 ﻿using PhotoFolder.Core.Dto.Services;
+using PhotoFolder.Infrastructure.Utilities;
 using System;
 using System.IO;
 
@@ -15,7 +16,8 @@ namespace PhotoFolder.Infrastructure.Files
             _rootDirectory = rootDirectory;
         }
 
-        public string Filename => _fileInfo.FullName.Substring(_rootDirectory.Length + 1);
+        // TODO: Trim start
+        public string Filename => _fileInfo.FullName.TrimStart(_rootDirectory + _fileInfo.FileSystem.Path.DirectorySeparatorChar);
         public long Length => _fileInfo.Length;
         public DateTimeOffset CreatedOn => _fileInfo.CreationTimeUtc;
         public DateTimeOffset ModifiedOn => _fileInfo.LastWriteTimeUtc;

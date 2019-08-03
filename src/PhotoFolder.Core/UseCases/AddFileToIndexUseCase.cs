@@ -32,42 +32,43 @@ namespace PhotoFolder.Core.UseCases
             if (file == null)
                 return ReturnError(new FileNotFoundError(message.Filename));
 
-            var repository = directory.GetFileRepository();
-
-            // check if the file already exists
-            var existingFile = await repository.FirstOrDefaultBySpecs(new FindByFilenameSpec(message.Filename));
-            if (existingFile != null)
+            using (var dataContext = directory.GetDataContext())
             {
-                return ReturnError(new InvalidOperationError("The file was already indexed. Please remove it first",
-                    ErrorCode.FileAlreadyIndexed));
+                // check if the file already exists
+                var existingFile = await dataContext.FileRepository.FirstOrDefaultBySpecs(new FindByFilenameSpec(message.Filename));
+                if (existingFile != null)
+                {
+                    return ReturnError(new InvalidOperationError("The file was already indexed. Please remove it first",
+                        ErrorCode.FileAlreadyIndexed));
+                }
+
+                // get file information
+                IndexedFile indexedFile;
+                bool isIndexedFileInDb;
+                try
+                {
+                    (indexedFile, isIndexedFileInDb) = await GetFileInformation(file, dataContext.FileRepository);
+                }
+                catch (Exception)
+                {
+                    // if the file was removed
+                    if (directory.GetFile(message.Filename) == null)
+                        return ReturnError(new FileNotFoundError(message.Filename));
+
+                    throw;
+                }
+
+                var fileLocation = new FileLocation(file.Filename, indexedFile.Hash,
+                    file.CreatedOn, file.ModifiedOn);
+                indexedFile.AddLocation(fileLocation);
+
+                if (isIndexedFileInDb)
+                    await dataContext.FileRepository.Update(indexedFile);
+                else
+                    await dataContext.FileRepository.Add(indexedFile);
+
+                return new AddFileToIndexResponse(indexedFile, fileLocation);
             }
-
-            // get file information
-            IndexedFile indexedFile;
-            bool isIndexedFileInDb;
-            try
-            {
-                (indexedFile, isIndexedFileInDb) = await GetFileInformation(file, repository);
-            }
-            catch (Exception)
-            {
-                // if the file was removed
-                if (directory.GetFile(message.Filename) == null)
-                    return ReturnError(new FileNotFoundError(message.Filename));
-
-                throw;
-            }
-
-            var fileLocation = new FileLocation(file.Filename, indexedFile.Hash,
-                file.CreatedOn, file.ModifiedOn);
-            indexedFile.AddLocation(fileLocation);
-
-            if (isIndexedFileInDb)
-                await repository.Update(indexedFile);
-            else
-                await repository.Add(indexedFile);
-
-            return new AddFileToIndexResponse(indexedFile, fileLocation);
         }
 
         private Hash ComputeHash(IFile file)

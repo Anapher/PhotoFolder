@@ -4,7 +4,7 @@ using PhotoFolder.Core.Domain.Entities;
 
 namespace PhotoFolder.Infrastructure.Data.Config
 {
-    public class FileLocationConfig : IEntityTypeConfiguration<FileLocation>
+    public class FileLocationCinfig : IEntityTypeConfiguration<FileLocation>
     {
         public void Configure(EntityTypeBuilder<FileLocation> builder)
         {

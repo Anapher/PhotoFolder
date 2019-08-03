@@ -12,14 +12,10 @@ namespace PhotoFolder.Infrastructure.Data.Repositories
         {
         }
 
-        public Task BatchAdd(IEnumerable<IndexedFile> files)
+        public Task RemoveFileLocation(FileLocation fileLocation)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public Task BatchDelete(IEnumerable<string> filenames)
-        {
-            throw new System.NotImplementedException();
+            _appDbContext.Remove(fileLocation);
+            return _appDbContext.SaveChangesAsync();
         }
     }
 }

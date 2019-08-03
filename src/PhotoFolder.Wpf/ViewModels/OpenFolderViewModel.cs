@@ -1,9 +1,16 @@
-﻿using PhotoFolder.Wpf.Extensions;
+﻿using PhotoFolder.Core.Interfaces.Gateways;
+using PhotoFolder.Infrastructure.Consts;
+using PhotoFolder.Infrastructure.Photos;
+using PhotoFolder.Infrastructure.Services;
+using PhotoFolder.Wpf.Extensions;
 using PhotoFolder.Wpf.Services;
 using Prism.Commands;
 using Prism.Mvvm;
+using Prism.Regions;
 using Prism.Services.Dialogs;
+using System;
 using System.IO.Abstractions;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace PhotoFolder.Wpf.ViewModels
@@ -12,16 +19,23 @@ namespace PhotoFolder.Wpf.ViewModels
     {
         private string _folderPath = string.Empty;
         private DelegateCommand? _choseFolderPathCommand;
-        private DelegateCommand? _loadFolderCommand;
+        private DelegateCommand? _openFolderCommand;
         private readonly IWindowService _windowService;
         private readonly IFileSystem _fileSystem;
         private readonly IDialogService _dialogService;
+        private readonly IPhotoDirectoryCreator _photoDirectoryCreator;
+        private readonly IPhotoDirectoryLoader _photoDirectoryLoader;
+        private readonly IRegionManager _regionManager;
 
-        public OpenFolderViewModel(IWindowService windowService, IDialogService dialogService, IFileSystem fileSystem)
+        public OpenFolderViewModel(IWindowService windowService, IDialogService dialogService, IFileSystem fileSystem,
+            IPhotoDirectoryCreator photoDirectoryCreator, IPhotoDirectoryLoader photoDirectoryLoader, IRegionManager regionManager)
         {
             _windowService = windowService;
             _fileSystem = fileSystem;
             _dialogService = dialogService;
+            _photoDirectoryCreator = photoDirectoryCreator;
+            _photoDirectoryLoader = photoDirectoryLoader;
+            _regionManager = regionManager;
         }
 
         public string FolderPath
@@ -47,11 +61,11 @@ namespace PhotoFolder.Wpf.ViewModels
             }
         }
 
-        public DelegateCommand LoadFolderCommand
+        public DelegateCommand OpenFolderCommand
         {
             get
             {
-                return _loadFolderCommand ?? (_loadFolderCommand = new DelegateCommand(() => {
+                return _openFolderCommand ?? (_openFolderCommand = new DelegateCommand(() => {
                     var folder = _fileSystem.DirectoryInfo.FromDirectoryName(FolderPath);
                     if (!folder.Exists)
                     {
@@ -59,13 +73,56 @@ namespace PhotoFolder.Wpf.ViewModels
                         return;
                     }
 
-                    var configFile = _fileSystem.FileInfo.FromFileName(_fileSystem.Path.Combine(folder.FullName, ".photofolder.settings.json"));
+                    var configFile = _fileSystem.FileInfo.FromFileName(_fileSystem.Path.Combine(folder.FullName, PhotoFolderConsts.ConfigFileName));
                     if (!configFile.Exists)
                     {
-
+                        var parameters = new DialogParameters { { "path", folder.FullName } };
+                        _dialogService.ShowDialog("ConfigureFolder", parameters, CreateFolderConfig(folder.FullName));
+                    }
+                    else
+                    {
+                        LoadFolder(folder.FullName);
                     }
                 }));
             }
+        }
+
+        private Action<IDialogResult> CreateFolderConfig(string path)
+        {
+            return async dialogResult =>
+            {
+                if (dialogResult.Result != ButtonResult.OK) return;
+
+                var templateString = dialogResult.Parameters.GetValue<string>("templateString");
+                try
+                {
+                    await _photoDirectoryCreator.Create(path, new PhotoDirectoryConfig(templateString));
+                }
+                catch (Exception e)
+                {
+                    _windowService.ShowError(e);
+                    return;
+                }
+
+                await LoadFolder(path);
+            };
+        }
+
+        private async Task LoadFolder(string path)
+        {
+            IPhotoDirectory photoDirectory;
+            try
+            {
+                photoDirectory = await _photoDirectoryLoader.Load(path);
+            }
+            catch (Exception e)
+            {
+                _windowService.ShowError(e);
+                return;
+            }
+
+            var parameters = new NavigationParameters { {"photoDirectory", photoDirectory } };
+            _regionManager.RequestNavigate(RegionNames.MainView, "SynchronizeFolderView", parameters);
         }
     }
 }

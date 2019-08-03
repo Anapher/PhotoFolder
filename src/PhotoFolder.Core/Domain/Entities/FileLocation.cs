@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PhotoFolder.Core.Domain.Entities
 {
-    public class FileLocation : FileReference
+    public class FileLocation : IFileReference
     {
         public FileLocation(string filename, string fileHash, DateTimeOffset createdOn,
             DateTimeOffset modifiedOn)
@@ -21,9 +19,12 @@ namespace PhotoFolder.Core.Domain.Entities
         }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
+        public string Hash { get; protected set; }
+        public string Filename { get; protected set; }
+
         // warning: these properties belong to the file, not the entity
-        public DateTimeOffset CreatedOn { get; }
-        public DateTimeOffset ModifiedOn { get; }
+        public DateTimeOffset CreatedOn { get; private set; }
+        public DateTimeOffset ModifiedOn { get; private set; }
 
         public void ChangeFileHash(Hash hash)
         {

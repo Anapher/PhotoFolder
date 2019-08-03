@@ -4,10 +4,13 @@ namespace PhotoFolder.Core.Domain.Entities
 {
     public class FileOperation : BaseEntity
     {
-        private FileOperation(FileReference targetFile, FileReference? sourceFile, FileOperationType type)
+        private FileOperation(IFileReference targetFile, IFileReference? sourceFile, FileOperationType type)
         {
-            TargetFile = targetFile;
-            SourceFile = sourceFile;
+            TargetFilename = targetFile.Filename;
+            TargetHash = targetFile.Hash;
+
+            SourceFilename = sourceFile?.Filename;
+            SourceHash = sourceFile?.Hash;
             Type = type;
         }
 
@@ -17,21 +20,31 @@ namespace PhotoFolder.Core.Domain.Entities
         }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
-        public FileReference TargetFile { get; private set; }
-        public FileReference? SourceFile { get; private set; }
+        public string TargetFilename { get; private set; }
+        public string TargetHash { get; private set; }
+
+        public string? SourceFilename { get; private set; }
+        public string? SourceHash { get; private set; }
+
+        public FileReference TargetFile
+        {
+            get => new FileReference(TargetHash, TargetFilename);
+        }
+
+        public FileReference? SourceFile { get => SourceFilename == null ? null : new FileReference(SourceHash!, SourceFilename); }
 
         public FileOperationType Type { get; private set; }
 
-        public static FileOperation FileChanged(FileReference target, FileReference source) =>
+        public static FileOperation FileChanged(IFileReference target, IFileReference source) =>
             new FileOperation(target, source, FileOperationType.Changed);
 
-        public static FileOperation FileMoved(FileReference target, FileReference source) =>
+        public static FileOperation FileMoved(IFileReference target, IFileReference source) =>
             new FileOperation(target, source, FileOperationType.Moved);
 
-        public static FileOperation FileRemoved(FileReference file) =>
+        public static FileOperation FileRemoved(IFileReference file) =>
             new FileOperation(file, null, FileOperationType.Removed);
 
-        public static FileOperation NewFile(FileReference file) =>
+        public static FileOperation NewFile(IFileReference file) =>
             new FileOperation(file, null, FileOperationType.New);
     }
 

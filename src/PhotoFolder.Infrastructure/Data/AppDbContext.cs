@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Infrastructure.Data.Config;
+using PhotoFolder.Core.Domain.Entities;
 
 namespace PhotoFolder.Infrastructure.Data
 {
@@ -16,13 +16,16 @@ namespace PhotoFolder.Infrastructure.Data
         {
         }
 
-        public DbSet<FileInformation> Files { get; set; }
+        public DbSet<IndexedFile> IndexedFiles { get; set; }
+        public DbSet<FileOperation> FileOperations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.ApplyConfiguration(new FileInformationConfig());
+            builder.ApplyConfiguration(new IndexedFileConfig());
+            builder.ApplyConfiguration(new FileLocationCinfig());
+            builder.ApplyConfiguration(new FileOperationConfig());
         }
 
         public override int SaveChanges()
