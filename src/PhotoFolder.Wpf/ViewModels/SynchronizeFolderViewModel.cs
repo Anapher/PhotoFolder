@@ -45,7 +45,7 @@ namespace PhotoFolder.Wpf.ViewModels
         {
             try
             {
-                await _synchronizeIndexWorker.Execute(new SynchronizeIndexRequest(photoDirectory));
+               await _synchronizeIndexWorker.Execute(new SynchronizeIndexRequest(photoDirectory));
             }
             catch (Exception e)
             {

@@ -9,6 +9,7 @@ using PhotoFolder.Infrastructure.TemplatePath;
 using PhotoFolder.Infrastructure.Utilities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 
@@ -39,7 +40,7 @@ namespace PhotoFolder.Infrastructure.Photos
                 .DirectoryInfo
                 .FromDirectoryName(_rootDirectory)
                 .EnumerateFiles("*", System.IO.SearchOption.AllDirectories)
-                .Where(x => x.Name != PhotoFolderConsts.ConfigFileName)
+                .Where(x => x.Name != PhotoFolderConsts.ConfigFileName && !x.Attributes.HasFlag(FileAttributes.Hidden))
                 .Select(x => new Files.FileInfoWrapper(x, _rootDirectory));
         }
 

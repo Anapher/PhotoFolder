@@ -8,6 +8,8 @@ namespace PhotoFolder.Application.Dto.WorkerStates
     {
         private SynchronizeIndexStatus _status;
         private double _progress;
+        private int _processedFiles;
+        private int _totalFiles;
 
         public SynchronizeIndexStatus Status
         {
@@ -19,6 +21,19 @@ namespace PhotoFolder.Application.Dto.WorkerStates
         {
             get => _progress;
             internal set => SetProperty(ref _progress, value);
+        }
+
+
+        public int TotalFiles
+        {
+            get { return _totalFiles; }
+            internal set => SetProperty(ref _totalFiles, value);
+        }
+
+        public int ProcessedFiles
+        {
+            get { return _processedFiles; }
+            internal set => SetProperty(ref _processedFiles, value);
         }
 
         public Dictionary<string, Error> Errors { get; } = new Dictionary<string, Error>();

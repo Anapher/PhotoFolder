@@ -33,7 +33,12 @@ namespace PhotoFolder.Application.Workers
 
         public SynchronizeIndexState State { get; }
 
-        public async Task<SynchronizeIndexResponse> Execute(SynchronizeIndexRequest request, CancellationToken cancellationToken = default)
+        public Task<SynchronizeIndexResponse> Execute(SynchronizeIndexRequest request, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => InternalExecute(request, cancellationToken));
+        }
+
+        public async Task<SynchronizeIndexResponse> InternalExecute(SynchronizeIndexRequest request, CancellationToken cancellationToken = default)
         {
             var directory = request.Directory;
 
@@ -69,20 +74,24 @@ namespace PhotoFolder.Application.Workers
                     .ToImmutableList();
 
                 State.Status = SynchronizeIndexStatus.IndexingNewFiles;
-                // add files to index
-                for (int i = 0; i < newFiles.Count; i++)
+                State.TotalFiles = newFiles.Count;
+
+                var processedFilesCount = 0;
+                void FileProcessed()
                 {
-                    State.Progress = (double)i / newFiles.Count;
+                    var processedFiles = Interlocked.Increment(ref processedFilesCount);
+                    State.ProcessedFiles = processedFiles;
+                    State.Progress = (double)processedFiles / newFiles.Count;
+                }
 
-                    var newFile = newFiles[i];
-
+                await TaskCombinators.ThrottledAsync(newFiles, async (newFile, _) => {
                     var action = _serviceProvider.GetRequiredService<IAddFileToIndexUseCase>();
                     var response = await action.Handle(new AddFileToIndexRequest(newFile.Filename, directory));
 
                     if (action.HasError)
                     {
                         State.Errors.Add(newFile.Filename, action.Error!);
-                        continue;
+                        return;
                     }
 
                     var (indexedFile, fileLocation) = response!;
@@ -91,14 +100,17 @@ namespace PhotoFolder.Application.Workers
                     (fileOperation, removedFilesInformation) = GetFileOperation(removedFilesInformation, indexedFile, fileLocation,
                         directory.PathComparer, _fileContentComparer);
 
-                    await dataContext.OperationRepository.Add(fileOperation);
-                }
+                    using (var context = directory.GetDataContext())
+                    {
+                        await context.OperationRepository.Add(fileOperation);
+                    }
+                    FileProcessed();
+                }, CancellationToken.None);
 
                 foreach (var removedFile in removedFilesInformation)
                 {
                     await dataContext.OperationRepository.Add(FileOperation.FileRemoved(removedFile));
                 }
-
             }
 
             return new SynchronizeIndexResponse();

@@ -16,7 +16,6 @@ namespace PhotoFolder.Infrastructure.Files
             _rootDirectory = rootDirectory;
         }
 
-        // TODO: Trim start
         public string Filename => _fileInfo.FullName.TrimStart(_rootDirectory + _fileInfo.FileSystem.Path.DirectorySeparatorChar);
         public long Length => _fileInfo.Length;
         public DateTimeOffset CreatedOn => _fileInfo.CreationTimeUtc;

@@ -27,15 +27,16 @@ namespace PhotoFolder.Infrastructure.Files
             _fileSystem = fileSystem;
         }
 
-        public async Task<FileInformation> Load(string filename)
+        public Task<FileInformation> Load(string filename)
         {
             var fileInfo = _fileSystem.FileInfo.FromFileName(filename);
             if (!fileInfo.Exists) throw new FileNotFoundException();
 
-            var file = new FileInfoWrapper(fileInfo, "")
+            var file = new FileInfoWrapper(fileInfo, "");
+            return Load(file);
         }
 
-        public async Task<FileInformation> Load(IFile file)
+        public async Task<FileInformation> Load(Core.Dto.Services.IFile file)
         {
             PhotoProperties? properties;
             Hash fileHash;
@@ -94,7 +95,7 @@ namespace PhotoFolder.Infrastructure.Files
             return false;
         }
 
-        private static DateTimeOffset GetCreationDate(Stream stream, IFile file)
+        private static DateTimeOffset GetCreationDate(Stream stream, Core.Dto.Services.IFile file)
         {
             IReadOnlyList<MetadataExtractor.Directory> metadata;
             try
