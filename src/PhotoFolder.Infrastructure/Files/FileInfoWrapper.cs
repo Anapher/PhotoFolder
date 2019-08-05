@@ -8,15 +8,17 @@ namespace PhotoFolder.Infrastructure.Files
     public class FileInfoWrapper : IFile
     {
         private readonly System.IO.Abstractions.IFileInfo _fileInfo;
-        private readonly string _rootDirectory;
 
-        public FileInfoWrapper(System.IO.Abstractions.IFileInfo fileInfo, string rootDirectory)
+        public FileInfoWrapper(System.IO.Abstractions.IFileInfo fileInfo, string? rootDirectory = null)
         {
             _fileInfo = fileInfo;
-            _rootDirectory = rootDirectory;
+
+            if (rootDirectory == null)
+                Filename = fileInfo.FullName;
+            else Filename = fileInfo.FullName.TrimStart(rootDirectory + fileInfo.FileSystem.Path.DirectorySeparatorChar);
         }
 
-        public string Filename => _fileInfo.FullName.TrimStart(_rootDirectory + _fileInfo.FileSystem.Path.DirectorySeparatorChar);
+        public string Filename { get; }
         public long Length => _fileInfo.Length;
         public DateTimeOffset CreatedOn => _fileInfo.CreationTimeUtc;
         public DateTimeOffset ModifiedOn => _fileInfo.LastWriteTimeUtc;

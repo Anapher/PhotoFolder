@@ -26,9 +26,10 @@ namespace PhotoFolder.Wpf.ViewModels
         private readonly IPhotoDirectoryCreator _photoDirectoryCreator;
         private readonly IPhotoDirectoryLoader _photoDirectoryLoader;
         private readonly IRegionManager _regionManager;
+        private readonly IAppSettingsProvider _appSettingsProvider;
 
         public OpenFolderViewModel(IWindowService windowService, IDialogService dialogService, IFileSystem fileSystem,
-            IPhotoDirectoryCreator photoDirectoryCreator, IPhotoDirectoryLoader photoDirectoryLoader, IRegionManager regionManager)
+            IPhotoDirectoryCreator photoDirectoryCreator, IPhotoDirectoryLoader photoDirectoryLoader, IRegionManager regionManager, IAppSettingsProvider appSettingsProvider)
         {
             _windowService = windowService;
             _fileSystem = fileSystem;
@@ -36,6 +37,9 @@ namespace PhotoFolder.Wpf.ViewModels
             _photoDirectoryCreator = photoDirectoryCreator;
             _photoDirectoryLoader = photoDirectoryLoader;
             _regionManager = regionManager;
+            _appSettingsProvider = appSettingsProvider;
+
+            FolderPath = _appSettingsProvider.Current.LatestPhotoFolder;
         }
 
         public string FolderPath
@@ -120,6 +124,8 @@ namespace PhotoFolder.Wpf.ViewModels
                 _windowService.ShowError(e);
                 return;
             }
+
+            _appSettingsProvider.Save(_appSettingsProvider.Current.SetLatestPhotoFolder(path));
 
             var parameters = new NavigationParameters { {"photoDirectory", photoDirectory } };
             _regionManager.RequestNavigate(RegionNames.MainView, "SynchronizeFolderView", parameters);

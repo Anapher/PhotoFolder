@@ -22,7 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoFolder.Application", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoFolder.Application.Tests", "test\PhotoFolder.Application.Tests\PhotoFolder.Application.Tests.csproj", "{BA6F81F7-2DBA-4247-A4DA-2FFDFDAA1B53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoFolder.Wpf", "src\PhotoFolder.Wpf\PhotoFolder.Wpf.csproj", "{23F95015-F595-481D-9105-97D8EA02C25D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoFolder.Wpf", "src\PhotoFolder.Wpf\PhotoFolder.Wpf.csproj", "{23F95015-F595-481D-9105-97D8EA02C25D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoFolder.Wpf.Tests", "test\PhotoFolder.Wpf.Tests\PhotoFolder.Wpf.Tests.csproj", "{D0087418-2A35-409B-9562-4F9A4CE6CEA4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +60,10 @@ Global
 		{23F95015-F595-481D-9105-97D8EA02C25D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23F95015-F595-481D-9105-97D8EA02C25D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23F95015-F595-481D-9105-97D8EA02C25D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0087418-2A35-409B-9562-4F9A4CE6CEA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0087418-2A35-409B-9562-4F9A4CE6CEA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0087418-2A35-409B-9562-4F9A4CE6CEA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0087418-2A35-409B-9562-4F9A4CE6CEA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,6 +72,7 @@ Global
 		{38B967D3-D5AC-42EE-80EE-0F5CBBB253AB} = {6F9069E4-DBB5-4485-B1DA-356B72489EA7}
 		{5303091A-1535-4FB3-AFA9-186F18B149D3} = {6F9069E4-DBB5-4485-B1DA-356B72489EA7}
 		{BA6F81F7-2DBA-4247-A4DA-2FFDFDAA1B53} = {6F9069E4-DBB5-4485-B1DA-356B72489EA7}
+		{D0087418-2A35-409B-9562-4F9A4CE6CEA4} = {6F9069E4-DBB5-4485-B1DA-356B72489EA7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5F7D7B8F-88C3-4E81-977E-2D5D19158921}

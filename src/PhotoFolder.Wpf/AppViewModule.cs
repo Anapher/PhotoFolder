@@ -20,15 +20,16 @@ namespace PhotoFolder.Wpf
             regionManager.RegisterViewWithRegion(RegionNames.MainView, typeof(SynchronizeFolderView));
             regionManager.RegisterViewWithRegion(RegionNames.MainView, typeof(PhotoFolderView));
 
-            regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderStatistics, typeof(PhotoFolderStatisticsView));
+            regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderWidgets, typeof(PhotoFolderStatisticsView));
+            regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderWidgets, typeof(PhotoFolderImportView));
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterForNavigation<OpenFolderView>();
-            containerRegistry.RegisterForNavigation<SynchronizeFolderView>();
-            containerRegistry.RegisterForNavigation<PhotoFolderView>();
-            containerRegistry.RegisterForNavigation<PhotoFolderStatisticsView>();
+            //containerRegistry.RegisterForNavigation<OpenFolderView>();
+            //containerRegistry.RegisterForNavigation<SynchronizeFolderView>();
+            //containerRegistry.RegisterForNavigation<PhotoFolderView>();
+            //containerRegistry.RegisterForNavigation<PhotoFolderStatisticsView>();
 
             containerRegistry.RegisterDialog<ConfigureFolderDialog, ConfigureFolderDialogViewModel>("ConfigureFolder");
         }

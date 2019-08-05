@@ -5,6 +5,23 @@ namespace PhotoFolder.Wpf.Services
 {
     public class WindowService : IWindowService
     {
+        public bool ShowFileSelectionDialog(string filter, out string[] selectedFiles)
+        {
+            var ofd = new System.Windows.Forms.OpenFileDialog
+            {
+                Filter = filter,
+                Multiselect = true
+            };
+
+            using (ofd)
+            {
+                var result = ofd.ShowDialog(new WindowWrapper(System.Windows.Application.Current.MainWindow));
+                selectedFiles = ofd.FileNames;
+
+                return result == System.Windows.Forms.DialogResult.OK ? true : false;
+            }
+        }
+
         public bool ShowFolderBrowserDialog(FolderBrowserDialogOptions options, out string selectedPath)
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog

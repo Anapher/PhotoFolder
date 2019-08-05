@@ -11,9 +11,9 @@
     mc:Ignorable="d">
     <GroupBox Margin="8" Header="Import">
         <StackPanel Margin="8" Orientation="Horizontal">
-            <Button>Import Files</Button>
-            <Button Margin="8,0">Import Folder</Button>
-            <TextBlock Text="or just drag &amp; drop files or folders here" />
+            <Button Command="{Binding OpenFilesCommand}">Import Files</Button>
+            <Button Margin="8,0" Command="{Binding OpenFolderCommand}">Import Folder</Button>
+            <TextBlock VerticalAlignment="Center" Text="or just drag &amp; drop files or folders here" />
         </StackPanel>
     </GroupBox>
 </UserControl>

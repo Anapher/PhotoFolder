@@ -3,7 +3,6 @@ using MetadataExtractor.Formats.Exif;
 using PhotoFolder.Core;
 using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Infrastructure.Utilities;
 using System;
@@ -32,7 +31,7 @@ namespace PhotoFolder.Infrastructure.Files
             var fileInfo = _fileSystem.FileInfo.FromFileName(filename);
             if (!fileInfo.Exists) throw new FileNotFoundException();
 
-            var file = new FileInfoWrapper(fileInfo, "");
+            var file = new FileInfoWrapper(fileInfo);
             return Load(file);
         }
 

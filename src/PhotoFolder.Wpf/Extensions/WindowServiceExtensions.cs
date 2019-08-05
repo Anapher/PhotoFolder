@@ -85,7 +85,10 @@ namespace PhotoFolder.Wpf.Extensions
             MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defResult) =>
             owner.ShowMessageBox(text, caption, buttons, icon, defResult, MessageBoxOptions.None);
 
+        public static void ShowError(this IWindowService windowService, string message)
+            => windowService.ShowMessage(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
         public static void ShowError(this IWindowService windowService, Exception ex)
-            => windowService.ShowMessage(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            => windowService.ShowError(ex.Message);
     }
 }

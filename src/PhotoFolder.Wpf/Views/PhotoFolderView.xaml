@@ -15,8 +15,12 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Vertical">
-            <ContentControl prism:RegionManager.RegionContext="{Binding PhotoDirectory}" prism:RegionManager.RegionName="{x:Static local:RegionNames.PhotoFolderStatistics}" />
-        </StackPanel>
+        <ItemsControl prism:RegionManager.RegionContext="{Binding PhotoDirectory}" prism:RegionManager.RegionName="{x:Static local:RegionNames.PhotoFolderWidgets}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
     </Grid>
 </UserControl>

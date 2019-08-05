@@ -6,6 +6,7 @@ namespace PhotoFolder.Wpf.Services
     public interface IWindowService
     {
         bool ShowFolderBrowserDialog(FolderBrowserDialogOptions options, out string selectedPath);
+        bool ShowFileSelectionDialog(string filter, out string[] selectedFiles);
 
         /// <summary>
         ///     Displays a message box.

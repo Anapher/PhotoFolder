@@ -43,6 +43,7 @@ namespace PhotoFolder.Wpf
             containerRegistry.Register<IWindowService, WindowService>();
             containerRegistry.RegisterDialogWindow<DialogWindow>();
             containerRegistry.RegisterInstance<IFileSystem>(new FileSystem());
+            containerRegistry.RegisterSingleton<IAppSettingsProvider, AppSettingsProvider>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
