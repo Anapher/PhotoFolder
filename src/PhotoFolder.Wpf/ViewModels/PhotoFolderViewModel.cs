@@ -10,7 +10,7 @@ namespace PhotoFolder.Wpf.ViewModels
 
         public IPhotoDirectory? PhotoDirectory
         {
-            get { return _photoDirectory; }
+            get => _photoDirectory;
             set => SetProperty(ref _photoDirectory, value);
         }
 

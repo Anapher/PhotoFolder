@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using PhotoFolder.Core;
+using PhotoFolder.Core.Domain;
 using PhotoFolder.Infrastructure.Photos;
 using Xunit;
 

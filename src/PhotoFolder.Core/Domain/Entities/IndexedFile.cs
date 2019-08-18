@@ -38,7 +38,7 @@ namespace PhotoFolder.Core.Domain.Entities
         public PhotoProperties? PhotoProperties { get; private set; }
         public IEnumerable<FileLocation> Files => _files;
 
-        Hash IFileContentInfo.Hash => Core.Hash.Parse(Hash);
+        Hash IFileContentInfo.Hash => Domain.Hash.Parse(Hash);
 
         public void AddLocation(FileLocation location)
         {

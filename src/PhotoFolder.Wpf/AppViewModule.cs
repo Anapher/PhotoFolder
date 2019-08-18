@@ -1,12 +1,7 @@
-﻿using Autofac;
-using PhotoFolder.Application;
-using PhotoFolder.Core;
-using PhotoFolder.Infrastructure;
-using PhotoFolder.Wpf.ViewModels;
+﻿using PhotoFolder.Wpf.ViewModels;
 using PhotoFolder.Wpf.Views;
 using Prism.Ioc;
 using Prism.Regions;
-using PhotoFolder.Wpf.Extensions;
 
 namespace PhotoFolder.Wpf
 {
@@ -22,16 +17,16 @@ namespace PhotoFolder.Wpf
 
             regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderWidgets, typeof(PhotoFolderStatisticsView));
             regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderWidgets, typeof(PhotoFolderImportView));
+
+            regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerMenu, typeof(DecisionManagerMenuView));
+            regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerList, typeof(DecisionManagerListView));
+            regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerSelectionDetails, typeof(DecisionManagerDetailsView));
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            //containerRegistry.RegisterForNavigation<OpenFolderView>();
-            //containerRegistry.RegisterForNavigation<SynchronizeFolderView>();
-            //containerRegistry.RegisterForNavigation<PhotoFolderView>();
-            //containerRegistry.RegisterForNavigation<PhotoFolderStatisticsView>();
-
             containerRegistry.RegisterDialog<ConfigureFolderDialog, ConfigureFolderDialogViewModel>("ConfigureFolder");
+            containerRegistry.RegisterDialog<DecisionManagerDialog, DecisionManagerViewModel>("DecisionManager");
         }
     }
 }

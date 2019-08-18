@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PhotoFolder.Core;
+using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Domain.Entities;
 
 namespace PhotoFolder.Infrastructure.Data.Config

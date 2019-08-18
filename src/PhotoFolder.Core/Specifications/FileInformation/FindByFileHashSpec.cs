@@ -1,4 +1,6 @@
-﻿namespace PhotoFolder.Core.Specifications.FileInformation
+﻿using PhotoFolder.Core.Domain;
+
+namespace PhotoFolder.Core.Specifications.FileInformation
 {
     public class FindByFileHashSpec : BaseSpecification<Domain.Entities.IndexedFile>
     {

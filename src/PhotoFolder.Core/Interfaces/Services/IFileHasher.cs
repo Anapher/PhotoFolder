@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Core.Interfaces.Services
 {

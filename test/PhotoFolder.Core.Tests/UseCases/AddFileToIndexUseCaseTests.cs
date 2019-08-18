@@ -6,16 +6,12 @@ using PhotoFolder.Core.Errors;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using PhotoFolder.Core.Interfaces.Services;
-using PhotoFolder.Core.Specifications;
 using PhotoFolder.Core.Specifications.FileInformation;
 using PhotoFolder.Core.UseCases;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using PhotoFolder.Core.Domain;
 using Xunit;
 
 namespace PhotoFolder.Core.Tests.UseCases

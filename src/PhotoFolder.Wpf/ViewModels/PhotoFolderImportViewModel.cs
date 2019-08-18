@@ -1,4 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Abstractions;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Dto.WorkerResponses;
 using PhotoFolder.Application.Interfaces.Workers;
@@ -7,52 +14,50 @@ using PhotoFolder.Wpf.Extensions;
 using PhotoFolder.Wpf.Services;
 using PhotoFolder.Wpf.Utilities;
 using Prism.Mvvm;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
-using System.Linq;
-using System.Threading.Tasks;
+using Prism.Services.Dialogs;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
     public class PhotoFolderImportViewModel : BindableBase
     {
+        private static readonly string[] ImageExtensions = {".bmp", ".jpg", ".png", ".gif"};
+        private readonly IFileSystem _fileSystem;
+        private readonly IDialogService _dialogService;
         private readonly IServiceProvider _serviceProvider;
-        private IPhotoDirectory? _photoDirectory;
         private readonly IWindowService _windowService;
-        private static readonly string[] ImageExtensions = new[] { ".bmp", ".jpg", ".png", ".gif" };
 
-        public PhotoFolderImportViewModel(IServiceProvider serviceProvider, IWindowService windowService, IFileSystem fileSystem)
+        private AsyncDelegateCommand? _openFilesCommand;
+
+        private AsyncDelegateCommand? _openFolderCommand;
+        private IPhotoDirectory? _photoDirectory;
+
+        public PhotoFolderImportViewModel(IServiceProvider serviceProvider, IWindowService windowService,
+            IFileSystem fileSystem, IDialogService dialogService)
         {
             _serviceProvider = serviceProvider;
             _windowService = windowService;
             _fileSystem = fileSystem;
+            _dialogService = dialogService;
         }
 
-        private AsyncDelegateCommand? _openFilesCommand;
-
-        public AsyncDelegateCommand OpenFilesCommand
-        {
-            get => _openFilesCommand ?? (_openFilesCommand = new AsyncDelegateCommand(async () => {
-                var result = _windowService.ShowFileSelectionDialog($"Image files|*{string.Join(";*", ImageExtensions)}|All files|*.*", out var filenames);
+        public AsyncDelegateCommand OpenFilesCommand =>
+            _openFilesCommand ??= new AsyncDelegateCommand(async () =>
+            {
+                var result = _windowService.ShowFileSelectionDialog(
+                    $"Image files|*{string.Join(";*", ImageExtensions)}|All files|*.*", out var filenames);
                 if (!result) return;
 
                 await ImportFiles(filenames);
-            }));
-        }
+            });
 
-        private AsyncDelegateCommand? _openFolderCommand;
-        private readonly IFileSystem _fileSystem;
-
-        public AsyncDelegateCommand OpenFolderCommand
-        {
-            get => _openFolderCommand ?? (_openFolderCommand = new AsyncDelegateCommand(async () => {
-                var result = _windowService.ShowFolderBrowserDialog(new FolderBrowserDialogOptions
-                {
-                    ShowNewFolderButton = false,
-                    Description = "Select the folder to import"
-                }, out var path);
+        public AsyncDelegateCommand OpenFolderCommand =>
+            _openFolderCommand ??= new AsyncDelegateCommand(async () =>
+            {
+                var result = _windowService.ShowFolderBrowserDialog(
+                    new FolderBrowserDialogOptions
+                    {
+                        ShowNewFolderButton = false, Description = "Select the folder to import"
+                    }, out var path);
                 if (!result) return;
 
                 var directory = _fileSystem.DirectoryInfo.FromDirectoryName(path);
@@ -67,32 +72,27 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     var msgResult = _windowService.ShowMessage(
                         "The selected directory contains subdirectories. Should the files from these also be included?",
-                        "Include subdirectories?", System.Windows.MessageBoxButton.YesNoCancel,
-                        System.Windows.MessageBoxImage.Question, System.Windows.MessageBoxResult.Yes);
+                        "Include subdirectories?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question,
+                        MessageBoxResult.Yes);
 
-                    if (msgResult == System.Windows.MessageBoxResult.Cancel) return;
-                    if (msgResult == System.Windows.MessageBoxResult.Yes) searchOption = SearchOption.AllDirectories;
+                    if (msgResult == MessageBoxResult.Cancel) return;
+                    if (msgResult == MessageBoxResult.Yes) searchOption = SearchOption.AllDirectories;
                 }
 
-                var files = directory.EnumerateFiles("*", searchOption);
+                var files = directory.EnumerateFiles("*", searchOption).ToList();
 
                 if (!files.All(HasFileImageExtension))
                 {
                     var msgResult = _windowService.ShowMessage(
-                    $"Files were found that do not end in the known image extensions ({string.Join(", ", ImageExtensions)}). Do you want to filter the files and only include image files?",
-                    "Filter", System.Windows.MessageBoxButton.YesNoCancel,
-                    System.Windows.MessageBoxImage.Question, System.Windows.MessageBoxResult.Yes);
+                        $"Files were found that do not end in the known image extensions ({string.Join(", ", ImageExtensions)}). Do you want to filter the files and only include image files?",
+                        "Filter", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Yes);
 
-                    if (msgResult == System.Windows.MessageBoxResult.Cancel) return;
-                    if (msgResult == System.Windows.MessageBoxResult.Yes)
-                    {
-                        files = files.Where(HasFileImageExtension);
-                    }
+                    if (msgResult == MessageBoxResult.Cancel) return;
+                    if (msgResult == MessageBoxResult.Yes) files = files.Where(HasFileImageExtension).ToList();
                 }
 
                 await ImportFiles(files.Select(x => x.FullName).ToList());
-            }));
-        }
+            });
 
         private static bool HasFileImageExtension(IFileInfo fileInfo)
         {
@@ -107,7 +107,8 @@ namespace PhotoFolder.Wpf.ViewModels
         public async Task ImportFiles(IReadOnlyList<string> files)
         {
             if (_photoDirectory == null)
-                throw new InvalidOperationException("The view model must first be initialized with the photo directory");
+                throw new InvalidOperationException(
+                    "The view model must first be initialized with the photo directory");
 
             var worker = _serviceProvider.GetRequiredService<IImportFilesWorker>();
             FileCheckReport report;
@@ -120,6 +121,10 @@ namespace PhotoFolder.Wpf.ViewModels
                 _windowService.ShowError(e);
                 return;
             }
+
+            var parameters = new DialogParameters {{"report", report}, {"photoDirectory", _photoDirectory}};
+
+            _dialogService.ShowDialog("DecisionManager", parameters, _ => { });
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using PhotoFolder.Application.Dto.WorkerRequests;
+﻿using System;
+using System.Threading.Tasks;
+using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Dto.WorkerStates;
 using PhotoFolder.Application.Interfaces.Workers;
 using PhotoFolder.Core.Interfaces.Gateways;
@@ -6,18 +8,14 @@ using PhotoFolder.Wpf.Extensions;
 using PhotoFolder.Wpf.Services;
 using Prism.Mvvm;
 using Prism.Regions;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
     public class SynchronizeFolderViewModel : BindableBase, INavigationAware
     {
+        private readonly IRegionManager _regionManager;
         private readonly ISynchronizeIndexWorker _synchronizeIndexWorker;
         private readonly IWindowService _windowService;
-        private readonly IRegionManager _regionManager;
 
         public SynchronizeFolderViewModel(ISynchronizeIndexWorker synchronizeIndexWorker, IWindowService windowService,
             IRegionManager regionManager)
@@ -45,7 +43,7 @@ namespace PhotoFolder.Wpf.ViewModels
         {
             try
             {
-               await _synchronizeIndexWorker.Execute(new SynchronizeIndexRequest(photoDirectory));
+                await _synchronizeIndexWorker.Execute(new SynchronizeIndexRequest(photoDirectory));
             }
             catch (Exception e)
             {
@@ -54,7 +52,7 @@ namespace PhotoFolder.Wpf.ViewModels
                 return;
             }
 
-            var parameters = new NavigationParameters { { "photoDirectory", photoDirectory } };
+            var parameters = new NavigationParameters {{"photoDirectory", photoDirectory}};
             _regionManager.RequestNavigate(RegionNames.MainView, "PhotoFolderView", parameters);
         }
     }

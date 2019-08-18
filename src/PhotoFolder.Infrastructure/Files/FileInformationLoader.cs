@@ -2,7 +2,6 @@
 using MetadataExtractor.Formats.Exif;
 using PhotoFolder.Core;
 using PhotoFolder.Core.Domain;
-using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Infrastructure.Utilities;
 using System;
@@ -12,6 +11,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Infrastructure.Files
 {

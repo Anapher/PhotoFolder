@@ -1,8 +1,8 @@
-﻿using PhotoFolder.Infrastructure.TemplatePath;
+﻿using System;
+using PhotoFolder.Infrastructure.TemplatePath;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
-using System;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
@@ -11,13 +11,20 @@ namespace PhotoFolder.Wpf.ViewModels
         private DelegateCommand? _configureCommand;
         private string _pathTemplate = "{date:yyyy}/{date:MM.dd} - {eventName}/{filename}";
 
-        public string Title { get; } = "Configure your Photo Folder";
-
         public string PathTemplate
         {
-            get { return _pathTemplate; }
+            get => _pathTemplate;
             set => SetProperty(ref _pathTemplate, value);
         }
+
+        public DelegateCommand ConfigureCommand =>
+            _configureCommand ??= new DelegateCommand(() =>
+            {
+                var result = new DialogResult(ButtonResult.OK, new DialogParameters {{"templateString", PathTemplate}});
+                RequestClose?.Invoke(result);
+            }, CheckPathTemplate).ObservesProperty(() => PathTemplate);
+
+        public string Title { get; } = "Configure your Photo Folder";
 
         public event Action<IDialogResult> RequestClose;
 
@@ -30,16 +37,6 @@ namespace PhotoFolder.Wpf.ViewModels
 
         public void OnDialogOpened(IDialogParameters parameters)
         {
-        }
-
-        public DelegateCommand ConfigureCommand
-        {
-            get
-=> _configureCommand ?? (_configureCommand = new DelegateCommand(() =>
-{
-    var result = new DialogResult(ButtonResult.OK, new DialogParameters { { "templateString", PathTemplate } });
-    RequestClose?.Invoke(result);
-}, CheckPathTemplate)).ObservesProperty(() => PathTemplate);
         }
 
         private bool CheckPathTemplate()

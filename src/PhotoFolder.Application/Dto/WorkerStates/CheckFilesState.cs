@@ -2,6 +2,7 @@
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto;
 using System.Collections.Generic;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Application.Dto.WorkerStates
 {

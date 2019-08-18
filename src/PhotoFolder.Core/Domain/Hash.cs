@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace PhotoFolder.Core
+namespace PhotoFolder.Core.Domain
 {
     /// <summary>
     ///     Represents a hash value

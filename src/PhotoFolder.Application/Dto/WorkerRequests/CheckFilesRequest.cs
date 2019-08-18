@@ -1,6 +1,6 @@
-﻿using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Interfaces.Gateways;
+﻿using PhotoFolder.Core.Interfaces.Gateways;
 using System.Collections.Generic;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Application.Dto.WorkerRequests
 {

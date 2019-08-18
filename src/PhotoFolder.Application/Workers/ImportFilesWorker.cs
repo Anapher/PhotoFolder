@@ -1,12 +1,12 @@
-﻿using PhotoFolder.Application.Dto.WorkerRequests;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Dto.WorkerResponses;
 using PhotoFolder.Application.Dto.WorkerStates;
 using PhotoFolder.Application.Interfaces.Workers;
-using PhotoFolder.Core.Domain.Entities;
+using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PhotoFolder.Application.Workers
 {
@@ -23,12 +23,13 @@ namespace PhotoFolder.Application.Workers
 
         public ImportFilesState State { get; } = new ImportFilesState();
 
-        public async Task<FileCheckReport> Execute(ImportFilesRequest request, CancellationToken cancellationToken = default)
+        public async Task<FileCheckReport> Execute(ImportFilesRequest request,
+            CancellationToken cancellationToken = default)
         {
             State.Status = ImportFilesStatus.Scanning;
 
             var fileInfos = new List<FileInformation>(request.Files.Count);
-            for (int i = 0; i < request.Files.Count; i++)
+            for (var i = 0; i < request.Files.Count; i++)
             {
                 var filename = request.Files[i];
                 var file = request.Directory.GetFile(filename);
@@ -37,7 +38,7 @@ namespace PhotoFolder.Application.Workers
                 var fileInfo = await _fileInformationLoader.Load(file);
                 fileInfos.Add(fileInfo);
 
-                State.Progress = (double)i / request.Files.Count;
+                State.Progress = (double) i / request.Files.Count;
             }
 
             State.Status = ImportFilesStatus.Querying;

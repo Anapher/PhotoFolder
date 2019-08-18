@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
-using PhotoFolder.Core;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Infrastructure.Utilities;
 using System.Collections.Generic;
 using System.Linq;
+using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Infrastructure.Photos
 {

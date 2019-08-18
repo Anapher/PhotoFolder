@@ -16,7 +16,7 @@ namespace PhotoFolder.Core.UseCases
 {
     public class CheckFileIntegrityUseCase : UseCaseStatus<CheckFileIntegrityResponse>, ICheckFileIntegrityUseCase
     {
-        private const float SimliarityThreshhold = 0.8f;
+        private const float SimilarityThreshold = 0.8f;
 
         private readonly IBitmapHashComparer _bitmapHashComparer;
 
@@ -30,7 +30,7 @@ namespace PhotoFolder.Core.UseCases
             var directory = message.PhotoDirectory;
             var fileInformation = message.FileInformation;
 
-            var simliarFiles = new Dictionary<IndexedFile, float>();
+            var similarFiles = new List<SimilarFile>();
             var equalFiles = new List<FileLocation>();
             var isWrongPlaced = false;
             IReadOnlyList<string>? recommendedDirectories = null;
@@ -50,18 +50,18 @@ namespace PhotoFolder.Core.UseCases
                 var result = _bitmapHashComparer.Compare(indexedFile.PhotoProperties.BitmapHash,
                     fileInformation.PhotoProperties.BitmapHash);
 
-                if (result > SimliarityThreshhold)
-                    simliarFiles.Add(indexedFile, result);
+                if (result > SimilarityThreshold)
+                    similarFiles.Add(new SimilarFile(indexedFile, result));
             }
 
             var pathPattern = directory.GetFileDirectoryRegexPattern(fileInformation);
             var pathRegex = new Regex(pathPattern);
 
-            if (!pathRegex.IsMatch(Path.GetFileName(message.FileInformation.Filename)))
+            if (!pathRegex.IsMatch(Path.GetDirectoryName(message.FileInformation.Filename)))
             {
                 isWrongPlaced = true;
 
-                // query all files that have a directory that would
+                // query all files that have a directory that would match
                 recommendedDirectories = message.IndexedFiles.SelectMany(x => x.Files).Select(x => Path.GetDirectoryName(x.Filename))
                     .Where(x => pathRegex.IsMatch(x)).Distinct().ToList();
             }
@@ -70,9 +70,10 @@ namespace PhotoFolder.Core.UseCases
             if (!Regex.IsMatch(Path.GetFileName(message.FileInformation.Filename), filenamePattern))
             {
                 recommendedFilename = Path.GetFileName(directory.GetRecommendedPath(fileInformation));
+                isWrongPlaced = true;
             }
 
-            return new CheckFileIntegrityResponse(equalFiles, simliarFiles, isWrongPlaced,
+            return new CheckFileIntegrityResponse(equalFiles, similarFiles, isWrongPlaced,
                 recommendedDirectories, recommendedFilename);
         }
     }

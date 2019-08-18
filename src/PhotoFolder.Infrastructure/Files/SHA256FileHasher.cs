@@ -2,6 +2,7 @@
 using PhotoFolder.Core.Interfaces.Services;
 using System.IO;
 using System.Security.Cryptography;
+using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Infrastructure.Files
 {
@@ -9,11 +10,10 @@ namespace PhotoFolder.Infrastructure.Files
     {
         public Hash ComputeHash(Stream stream)
         {
-            using (var sha256 = SHA256.Create())
-            {
-                var hash = sha256.ComputeHash(stream);
-                return new Hash(hash);
-            }
+            using var sha256 = SHA256.Create();
+
+            var hash = sha256.ComputeHash(stream);
+            return new Hash(hash);
         }
     }
 }

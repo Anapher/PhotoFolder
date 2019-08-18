@@ -52,7 +52,7 @@ namespace PhotoFolder.Wpf.ViewModels
         {
             get
             {
-                return _choseFolderPathCommand ?? (_choseFolderPathCommand = new DelegateCommand(() => {
+                return _choseFolderPathCommand ??= new DelegateCommand(() => {
                     if (_windowService.ShowFolderBrowserDialog(new FolderBrowserDialogOptions
                     {
                         Description = "Please select your photo folder.",
@@ -61,7 +61,7 @@ namespace PhotoFolder.Wpf.ViewModels
                     {
                         FolderPath = selectedPath;
                     }
-                }));
+                });
             }
         }
 
@@ -69,7 +69,7 @@ namespace PhotoFolder.Wpf.ViewModels
         {
             get
             {
-                return _openFolderCommand ?? (_openFolderCommand = new DelegateCommand(() => {
+                return _openFolderCommand ??= new DelegateCommand(() => {
                     var folder = _fileSystem.DirectoryInfo.FromDirectoryName(FolderPath);
                     if (!folder.Exists)
                     {
@@ -87,7 +87,7 @@ namespace PhotoFolder.Wpf.ViewModels
                     {
                         LoadFolder(folder.FullName);
                     }
-                }));
+                });
             }
         }
 
@@ -127,7 +127,7 @@ namespace PhotoFolder.Wpf.ViewModels
 
             _appSettingsProvider.Save(_appSettingsProvider.Current.SetLatestPhotoFolder(path));
 
-            var parameters = new NavigationParameters { {"photoDirectory", photoDirectory } };
+            var parameters = new NavigationParameters { { "photoDirectory", photoDirectory } };
             _regionManager.RequestNavigate(RegionNames.MainView, "SynchronizeFolderView", parameters);
         }
     }

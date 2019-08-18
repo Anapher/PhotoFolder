@@ -7,6 +7,7 @@ using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using PhotoFolder.Core.UseCases;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using PhotoFolder.Core.Domain;
 using Xunit;
 
 namespace PhotoFolder.Core.Tests.UseCases

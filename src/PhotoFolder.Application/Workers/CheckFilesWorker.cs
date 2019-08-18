@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Application.Workers
 {
@@ -55,9 +56,7 @@ namespace PhotoFolder.Application.Workers
                 }
                 else
                 {
-                    if (response!
-                        .EqualFiles.Any() || response.SimilarFiles.Any() || response.RecommendedDirectories.Any() || response.RecommendedFilename != null
-                        || response.IsWrongPlaced)
+                    if (response!.EqualFiles.Any() || response.SimilarFiles.Any() || response.IsWrongPlaced)
                     {
                         result.Add((fileInformation, response));
                     }

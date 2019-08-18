@@ -1,8 +1,8 @@
-﻿using PhotoFolder.Core.Domain.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Infrastructure.Photos
 {
@@ -27,7 +27,7 @@ namespace PhotoFolder.Infrastructure.Photos
         {
             var parameters = key.Split(':', 2);
 
-            if (_placeholderMap.TryGetValue(key, out var placeholderFn))
+            if (_placeholderMap.TryGetValue(parameters[0], out var placeholderFn))
                 return placeholderFn(fileInformation, parameters.Skip(1).FirstOrDefault());
 
             return null;

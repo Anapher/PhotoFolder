@@ -1,4 +1,6 @@
-﻿namespace PhotoFolder.Core.Interfaces.Services
+﻿using PhotoFolder.Core.Domain;
+
+namespace PhotoFolder.Core.Interfaces.Services
 {
     public interface IBitmapHashComparer
     {

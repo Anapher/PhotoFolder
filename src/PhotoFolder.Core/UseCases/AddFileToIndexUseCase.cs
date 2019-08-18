@@ -10,6 +10,7 @@ using PhotoFolder.Core.Interfaces.UseCases;
 using PhotoFolder.Core.Specifications.FileInformation;
 using System;
 using System.Threading.Tasks;
+using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Core.UseCases
 {
@@ -73,10 +74,8 @@ namespace PhotoFolder.Core.UseCases
 
         private Hash ComputeHash(IFile file)
         {
-            using (var stream = file.OpenRead())
-            {
-                return _fileHasher.ComputeHash(stream);
-            }
+            using var stream = file.OpenRead();
+            return _fileHasher.ComputeHash(stream);
         }
 
         private async Task<(IndexedFile, bool fromBb)> GetFileInformation(IFile file, IIndexedFileRepository repository)

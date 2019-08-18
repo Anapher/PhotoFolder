@@ -1,7 +1,7 @@
-﻿using PhotoFolder.Core.Dto.Services;
-using System;
+﻿using System;
+using PhotoFolder.Core.Domain;
 
-namespace PhotoFolder.Core.Domain.Entities
+namespace PhotoFolder.Core.Dto.Services
 {
     public class FileInformation : FileReference, IFileInfo, IFileContentInfo
     {
@@ -25,6 +25,6 @@ namespace PhotoFolder.Core.Domain.Entities
 
         public PhotoProperties? PhotoProperties { get; }
 
-        Hash IFileContentInfo.Hash => Core.Hash.Parse(Hash);
+        Hash IFileContentInfo.Hash => Domain.Hash.Parse(Hash);
     }
 }

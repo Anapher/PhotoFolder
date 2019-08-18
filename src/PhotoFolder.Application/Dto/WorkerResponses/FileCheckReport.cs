@@ -1,6 +1,7 @@
 ﻿using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.UseCaseResponses;
 using System.Collections.Generic;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Application.Dto.WorkerResponses
 {

@@ -3,6 +3,7 @@ using PhotoFolder.Core.Dto.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Core.Utilities
 {

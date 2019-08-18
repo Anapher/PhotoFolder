@@ -1,4 +1,5 @@
 ﻿using PhotoFolder.Core.Domain.Entities;
+using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.UseCaseResponses;
 using PhotoFolder.Core.Interfaces;
 using PhotoFolder.Core.Interfaces.Gateways;

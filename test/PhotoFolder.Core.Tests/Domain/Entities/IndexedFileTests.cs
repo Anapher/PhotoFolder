@@ -1,5 +1,6 @@
 ﻿using PhotoFolder.Core.Domain.Entities;
 using System;
+using PhotoFolder.Core.Domain;
 using Xunit;
 
 namespace PhotoFolder.Core.Tests.Domain.Entities

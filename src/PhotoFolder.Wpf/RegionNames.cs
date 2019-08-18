@@ -4,5 +4,8 @@
     {
         public const string MainView = nameof(MainView);
         public const string PhotoFolderWidgets = nameof(PhotoFolderWidgets);
+        public const string DecisionManagerMenu = nameof(DecisionManagerMenu);
+        public const string DecisionManagerList = nameof(DecisionManagerList);
+        public const string DecisionManagerSelectionDetails = nameof(DecisionManagerSelectionDetails);
     }
 }

@@ -1,6 +1,4 @@
-﻿using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto.Services;
-using PhotoFolder.Core.Interfaces.Gateways.Repositories;
+﻿using PhotoFolder.Core.Dto.Services;
 using System.Collections.Generic;
 
 namespace PhotoFolder.Core.Interfaces.Gateways
@@ -11,6 +9,7 @@ namespace PhotoFolder.Core.Interfaces.Gateways
 
         IEnumerable<IFile> EnumerateFiles();
         IFile? GetFile(string filename);
+        bool IsFileInDirectory(string filename);
 
         string GetFileDirectoryRegexPattern(FileInformation fileInformation);
         string GetFilenameRegexPattern(FileInformation fileInformation);
