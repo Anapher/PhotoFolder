@@ -1,79 +1,47 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using PhotoFolder.Application.Dto.WorkerResponses;
 using PhotoFolder.Core.Dto.Services;
-using PhotoFolder.Core.Dto.UseCaseResponses;
+using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Interfaces.Gateways;
-using PhotoFolder.Wpf.Extensions;
 using PhotoFolder.Wpf.ViewModels;
 
 namespace PhotoFolder.Wpf.Services
 {
     public static class ImportDecisionFactory
     {
-        public static List<IFileDecisionViewModel> Create(FileCheckReport report, IPhotoDirectory photoDirectory)
+        public static IEnumerable<IIssueDecisionViewModel> Create(FileCheckReport report, IPhotoDirectory photoDirectory)
         {
-            var result = new List<IFileDecisionViewModel>();
-            foreach (var fileGroup in report.ProblematicFiles.GroupBy(x => x.Item1.Hash))
+            foreach (var issue in report.Issues)
             {
-                var integrityResponse = fileGroup.First().Item2;
-                result.AddRange(Create(fileGroup.Select(x => x.Item1).ToList(), integrityResponse, photoDirectory));
+                if (issue is DuplicateFilesIssue duplicateFilesIssue)
+                    yield return Create(duplicateFilesIssue, photoDirectory);
+                else if (issue is InvalidFileLocationIssue invalidFileLocationIssue)
+                    yield return new InvalidLocationFileDecisionViewModel(invalidFileLocationIssue);
+                else if (issue is SimilarFileDecisionViewModel similarFileDecisionViewModel)
+                    yield return new SimilarFileDecisionViewModel()
             }
-
-            return result;
         }
 
-        public static IEnumerable<IFileDecisionViewModel> Create(IReadOnlyList<FileInformation> files,
-            CheckFileIntegrityResponse report, IPhotoDirectory photoDirectory)
+        public static IIssueDecisionViewModel Create(DuplicateFilesIssue duplicateFilesIssue, IPhotoDirectory photoDirectory)
         {
-            var fileLocations = files.GroupBy(x => photoDirectory.IsFileInDirectory(x.Filename)).ToList();
-            bool isInDirectory;
+            var isInDirectory = duplicateFilesIssue.File.IsRelativeFilename;
 
-            if (fileLocations.Count == 1)
-                isInDirectory = fileLocations.Single().Key;
+            IEnumerable<Checkable<FileInformation>> filesToKeep;
+            if (isInDirectory)
+            {
+                // just keep one file, try to find the file that is located correctly
+                var bestFile = duplicateFilesIssue.RelevantFiles.FirstOrDefault(x => Regex.IsMatch(x.Filename, photoDirectory.GetFilenameRegexPattern(x))) ?? duplicateFilesIssue.File;
+                filesToKeep = new[] { duplicateFilesIssue.File }.Concat(duplicateFilesIssue.RelevantFiles).Select(x => new Checkable<FileInformation>(x, x == bestFile));
+            }
             else
-                // we received equal files, some of them that were in the photo directory and some that weren't
-                // we split these files and do a recursive call
-                return fileLocations.SelectMany(x => Create(x.ToList(), report, photoDirectory));
-
-            var analysis = files.Select(x => Create(x, report, photoDirectory, isInDirectory));
-            if (files.Count == 1)
-                return analysis.Single().Yield();
-
-            return new EqualFileDecisionViewModel(analysis.ToList()).Yield();
-        }
-
-        public static IFileDecisionViewModel Create(FileInformation file, CheckFileIntegrityResponse report,
-            IPhotoDirectory photoDirectory, bool isInPhotoDirectory)
-        {
-            var analysis = new List<IFileAnalysis>();
-            if (report.EqualFiles.Any()) analysis.Add(new FileDuplicationAnalysis(report.EqualFiles));
-
-            if (report.SimilarFiles.Any()) analysis.Add(new SimilarFilesAnalysis(report.SimilarFiles));
-
-            if (report.IsWrongPlaced)
             {
-                var filename = report.RecommendedFilename ?? Path.GetFileName(file.Filename);
-
-                IReadOnlyList<string> directories;
-                if (report.RecommendedDirectories != null)
-                {
-                    directories = report.RecommendedDirectories
-                        .Concat(new[] {Path.GetDirectoryName(photoDirectory.GetRecommendedPath(file))}).Distinct().ToList();
-                }
-                else
-                {
-                    directories = new[] {Path.GetDirectoryName(file.Filename)};
-                }
-
-                analysis.Add(new WrongPlacedFileAnalysis(directories.Select(x => Path.Combine(x, filename))
-                    .ToImmutableList()));
+                // in case of import, we just delete the file that would be imported
+                filesToKeep = new[] { new Checkable<FileInformation>(duplicateFilesIssue.File) }.Concat(duplicateFilesIssue.RelevantFiles.Select(x => new Checkable<FileInformation>(x, true)));
             }
 
-            var pathTemplate = photoDirectory.GetFileDirectoryRegexPattern(file);
-            return new FileDecisionViewModel(file, pathTemplate, analysis, isInPhotoDirectory);
+            return new DuplicateFileDecisionViewModel(filesToKeep.ToList(), duplicateFilesIssue);
         }
     }
 }

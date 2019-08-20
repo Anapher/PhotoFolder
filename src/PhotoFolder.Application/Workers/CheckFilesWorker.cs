@@ -5,7 +5,6 @@ using PhotoFolder.Application.Dto.WorkerStates;
 using PhotoFolder.Application.Interfaces.Workers;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.UseCaseRequests;
-using PhotoFolder.Core.Dto.UseCaseResponses;
 using PhotoFolder.Core.Interfaces.UseCases;
 using PhotoFolder.Core.Specifications.FileInformation;
 using System;
@@ -14,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PhotoFolder.Core.Dto.Services;
+using PhotoFolder.Application.Utilities;
 
 namespace PhotoFolder.Application.Workers
 {
@@ -35,7 +35,7 @@ namespace PhotoFolder.Application.Workers
             var fileInfos = request.Files;
 
             // get all files from the repository
-            IList<IndexedFile> indexedFiles;
+            IReadOnlyList<IndexedFile> indexedFiles;
             using (var context = directory.GetDataContext())
             {
                 indexedFiles = await context.FileRepository.GetAllBySpecs(new IncludeFileLocationsSpec());
@@ -43,7 +43,7 @@ namespace PhotoFolder.Application.Workers
 
             State.Status = CheckFilesStatus.Querying;
 
-            var result = new List<(FileInformation, CheckFileIntegrityResponse)>();
+            var result = new List<IFileIssue>();
             for (int i = 0; i < fileInfos.Count; i++)
             {
                 var fileInformation = fileInfos[i];
@@ -56,16 +56,13 @@ namespace PhotoFolder.Application.Workers
                 }
                 else
                 {
-                    if (response!.EqualFiles.Any() || response.SimilarFiles.Any() || response.IsWrongPlaced)
-                    {
-                        result.Add((fileInformation, response));
-                    }
+                    result.AddRange(response!.Issues);
                 }
 
-                State.Progress = (float)i / indexedFiles.Count;
+                State.Progress = (float) i / indexedFiles.Count;
             }
 
-            return new FileCheckReport(result);
+            return new FileCheckReport(result.Distinct(new EqualityComparerByValue<IFileIssue, string>(x => x.Identity)).ToList());
         }
     }
 }

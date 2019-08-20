@@ -9,7 +9,7 @@ namespace PhotoFolder.Core.Dto.UseCaseRequests
 {
     public class CheckFileIntegrityRequest : IUseCaseRequest<CheckFileIntegrityResponse>
     {
-        public CheckFileIntegrityRequest(FileInformation fileInformation, IEnumerable<IndexedFile> indexedFiles, IPhotoDirectory photoDirectory)
+        public CheckFileIntegrityRequest(FileInformation fileInformation, IReadOnlyList<IndexedFile> indexedFiles, IPhotoDirectory photoDirectory)
         {
             FileInformation = fileInformation;
             IndexedFiles = indexedFiles;
@@ -17,7 +17,7 @@ namespace PhotoFolder.Core.Dto.UseCaseRequests
         }
 
         public FileInformation FileInformation { get; }
-        public IEnumerable<IndexedFile> IndexedFiles { get; }
+        public IReadOnlyList<IndexedFile> IndexedFiles { get; }
         public IPhotoDirectory PhotoDirectory { get; }
     }
 }

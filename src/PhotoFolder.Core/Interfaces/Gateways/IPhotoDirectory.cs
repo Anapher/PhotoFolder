@@ -9,7 +9,7 @@ namespace PhotoFolder.Core.Interfaces.Gateways
 
         IEnumerable<IFile> EnumerateFiles();
         IFile? GetFile(string filename);
-        bool IsFileInDirectory(string filename);
+        bool IsFileInDirectory(FileInformation fileInformation);
 
         string GetFileDirectoryRegexPattern(FileInformation fileInformation);
         string GetFilenameRegexPattern(FileInformation fileInformation);

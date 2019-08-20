@@ -1,38 +1,29 @@
-﻿using PhotoFolder.Core.Domain.Entities;
+﻿using PhotoFolder.Core.Dto.Services;
 using System.Collections.Generic;
 
 namespace PhotoFolder.Core.Dto.UseCaseResponses
 {
     public class CheckFileIntegrityResponse
     {
-        public CheckFileIntegrityResponse(IReadOnlyList<FileLocation> equalFiles, IReadOnlyList<SimilarFile> similarFiles,
-            bool isWrongPlaced, IReadOnlyList<string>? recommendedDirectories, string? recommendedFilename)
+        public CheckFileIntegrityResponse(FileInformation file, IReadOnlyList<IFileIssue> issues)
         {
-            EqualFiles = equalFiles;
-            SimilarFiles = similarFiles;
-            IsWrongPlaced = isWrongPlaced;
-            RecommendedDirectories = recommendedDirectories;
-            RecommendedFilename = recommendedFilename;
+            File = file;
+            Issues = issues;
         }
 
-        public IReadOnlyList<FileLocation> EqualFiles { get; }
-        public IReadOnlyList<SimilarFile> SimilarFiles { get; }
-
-        public bool IsWrongPlaced { get; }
-        public IReadOnlyList<string>? RecommendedDirectories { get; }
-
-        public string? RecommendedFilename { get; }
+        public FileInformation File { get; }
+        public IReadOnlyList<IFileIssue> Issues { get; }
     }
 
     public class SimilarFile
     {
-        public SimilarFile(IndexedFile indexedFile, float similarity)
+        public SimilarFile(FileInformation fileInfo, float similarity)
         {
-            IndexedFile = indexedFile;
+            FileInfo = fileInfo;
             Similarity = similarity;
         }
 
-        public IndexedFile IndexedFile { get; }
+        public FileInformation FileInfo { get; }
         public float Similarity { get; }
     }
 }

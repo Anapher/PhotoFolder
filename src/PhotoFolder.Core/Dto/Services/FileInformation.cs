@@ -6,7 +6,7 @@ namespace PhotoFolder.Core.Dto.Services
     public class FileInformation : FileReference, IFileInfo, IFileContentInfo
     {
         public FileInformation(string filename, DateTimeOffset createdOn, DateTimeOffset modifiedOn, Hash hash,
-                               long length, DateTimeOffset fileCreatedOn, PhotoProperties? photoProperties)
+                               long length, DateTimeOffset fileCreatedOn, PhotoProperties? photoProperties, bool isRelativeFilename)
         {
             Filename = filename;
             CreatedOn = createdOn;
@@ -15,6 +15,7 @@ namespace PhotoFolder.Core.Dto.Services
             Length = length;
             FileCreatedOn = fileCreatedOn;
             PhotoProperties = photoProperties;
+            IsRelativeFilename = isRelativeFilename;
         }
 
         public DateTimeOffset CreatedOn { get; }
@@ -26,5 +27,7 @@ namespace PhotoFolder.Core.Dto.Services
         public PhotoProperties? PhotoProperties { get; }
 
         Hash IFileContentInfo.Hash => Domain.Hash.Parse(Hash);
+
+        public bool IsRelativeFilename { get; }
     }
 }

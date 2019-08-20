@@ -1,6 +1,5 @@
 ﻿using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
-using PhotoFolder.Core;
 using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Infrastructure.Utilities;
@@ -75,7 +74,7 @@ namespace PhotoFolder.Infrastructure.Files
             }
 
             return new FileInformation(file.Filename, file.CreatedOn, file.ModifiedOn, fileHash, file.Length,
-                                       fileCreatedOn, properties);
+                                       fileCreatedOn, properties, file.IsRelativeFilename);
         }
 
         private static bool TrySelectDateTaken(IReadOnlyList<MetadataExtractor.Directory> metadata, out DateTime dateTime)

@@ -1,189 +1,197 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
-using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.Services;
-using PhotoFolder.Core.Dto.UseCaseResponses;
+using PhotoFolder.Core.Dto.Services.FileIssue;
 using Prism.Mvvm;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
-    public interface IFileAnalysis
+    public interface IFileOperation
     {
-        string Description { get; }
-
-        bool IsSafeAction { get; }
-        FileAction Action { get; }
-    }
-
-    public interface IFileDecisionViewModel
-    {
-        IImmutableList<FileDecision> PossibleDecisions { get; }
-        FileDecision RecommendedDecision { get; }
-
-        string Description { get; }
-        bool IsInPhotoDirectory { get; }
-
-        FileDecision SelectedDecision { get; set; }
         FileInformation File { get; }
-
-        string DirectoryPathTemplate { get; }
-        string? TargetPath { get; set; }
-        IImmutableList<string> RecommendedPaths { get; }
     }
 
-    public class EqualFileDecisionViewModel : BindableBase, IFileDecisionViewModel
+    public class DeleteFileOperation : IFileOperation
     {
-        public EqualFileDecisionViewModel(IReadOnlyList<IFileDecisionViewModel> children)
+        public DeleteFileOperation(FileInformation file)
         {
-            Children = children;
-        }
-
-        public IReadOnlyList<IFileDecisionViewModel> Children { get; }
-
-        public IImmutableList<FileDecision> PossibleDecisions { get; } = ImmutableList<FileDecision>.Empty;
-        public FileDecision RecommendedDecision { get; } = FileDecision.None;
-
-        public string Description => $"{Children.Count} equal files";
-        public bool IsInPhotoDirectory => Children.First().IsInPhotoDirectory;
-        public FileDecision SelectedDecision { get; set; }
-        public FileInformation File => Children.First().File;
-        public string DirectoryPathTemplate => Children.First().DirectoryPathTemplate;
-
-        public string? TargetPath { get; set; }
-        public IImmutableList<string> RecommendedPaths { get; } = ImmutableList<string>.Empty;
-    }
-
-    public class FileDecisionViewModel : BindableBase, IFileDecisionViewModel
-    {
-        private string? _targetPath;
-        private FileDecision _selectedDecision = FileDecision.None;
-
-        private static readonly IImmutableList<FileDecision> RootDecisions =
-            new[] {FileDecision.None, FileDecision.DecideLater}.ToImmutableList();
-
-        public FileDecisionViewModel(FileInformation file, string directoryPathTemplate, IReadOnlyList<IFileAnalysis> analysis, bool isInPhotoDirectory)
-        {
-            IsInPhotoDirectory = isInPhotoDirectory;
             File = file;
-            DirectoryPathTemplate = directoryPathTemplate;
-
-            PossibleDecisions = RootDecisions.AddRange(analysis.Select(x => (FileDecision) x.Action).Distinct());
-            RecommendedDecision = analysis.Where(x => x.IsSafeAction).Select(x => (FileDecision?) x.Action)
-                .FirstOrDefault() ?? FileDecision.None;
-
-            var wrongPlaced = analysis.OfType<WrongPlacedFileAnalysis>().FirstOrDefault();
-            if (wrongPlaced != null)
-            {
-                RecommendedPaths = wrongPlaced.RecommendedPaths;
-                TargetPath = RecommendedPaths.FirstOrDefault();
-            }
-            else
-                RecommendedPaths = ImmutableList<string>.Empty;
-
-            if (analysis.OfType<FileDuplicationAnalysis>().Any())
-                Description = isInPhotoDirectory ? "Duplicate" : "Already exists";
-            else if (analysis.OfType<SimilarFilesAnalysis>().Any())
-                Description = "Similar file found";
-            else if (wrongPlaced != null)
-                Description = isInPhotoDirectory ? "Wrong Location" : "Import";
-            else Description = "Unknown Analysis";
         }
 
-        public IImmutableList<FileDecision> PossibleDecisions { get; }
-        public FileDecision RecommendedDecision { get; }
-        public string Description { get; }
-        public bool IsInPhotoDirectory { get; }
         public FileInformation File { get; }
-        public string DirectoryPathTemplate { get; }
-        public IImmutableList<string> RecommendedPaths { get; }
+    }
 
-        public string? TargetPath
+    public class MoveFileOperation : IFileOperation
+    {
+        public MoveFileOperation(FileInformation file, string targetPath)
         {
-            get => _targetPath;
-            set => SetProperty(ref _targetPath, value);
+            File = file;
+            TargetPath = targetPath;
         }
 
-        public FileDecision SelectedDecision
+        public FileInformation File { get; }
+        public string TargetPath { get; }
+    }
+
+    public interface IIssueDecisionViewModel
+    {
+        bool IsRecommended { get; }
+        IReadOnlyList<IFileOperation> Operations { get; }
+        IFileIssue Issue { get; }
+
+        bool UpdateDeletedFiles(IReadOnlyList<FileInformation> deletedFiles);
+    }
+
+    public class IssueDecisionWrapperViewModel : BindableBase
+    {
+        private bool _execute;
+
+        public bool Execute
         {
-            get => _selectedDecision;
-            set => SetProperty(ref _selectedDecision, value);
+            get { return _execute; }
+            set => SetProperty(ref _execute, value);
         }
     }
 
-    /// <summary>
-    ///     The file is not in the directory, but equal files already exist
-    /// </summary>
-    public class FileDuplicationAnalysis : IFileAnalysis
+    public class Checkable<T> : BindableBase
     {
-        public FileDuplicationAnalysis(IReadOnlyList<FileLocation> equalFiles)
-        {
-            if (!equalFiles.Any()) throw new ArgumentException("Must have at least one equal file");
+        private bool _isChecked;
 
-            EqualFiles = equalFiles;
+        public Checkable(T value, bool isChecked)
+        {
+            Value = value;
+            IsChecked = isChecked;
         }
 
-        public IReadOnlyList<FileLocation> EqualFiles { get; }
-        public string Description => $"File was already found at {EqualFiles.Count} location{EqualFiles.GetSuffix()}.";
-        public bool IsSafeAction { get; } = true;
-        public FileAction Action { get; } = FileAction.Delete;
-    }
-
-    public class SimilarFilesAnalysis : IFileAnalysis
-    {
-        public SimilarFilesAnalysis(IReadOnlyList<SimilarFile> similarFiles)
+        public Checkable(T value) : this(value, false)
         {
-            SimilarFiles = similarFiles;
         }
 
-        public IReadOnlyList<SimilarFile> SimilarFiles { get; }
+        public T Value { get; }
 
-        public string Description =>
-            $"{SimilarFiles.Count} similar file{SimilarFiles.GetSuffix()} {(SimilarFiles.Count == 1 ? "was" : "were")} found (greatest similarity: {SimilarFiles.Max(x => x.Similarity)}).";
-
-        public FileAction Action { get; } = FileAction.Delete;
-        public bool IsSafeAction { get; } = false;
+        public bool IsChecked
+        {
+            get { return _isChecked; }
+            set => SetProperty(ref _isChecked, value);
+        }
     }
 
-    public class WrongPlacedFileAnalysis : IFileAnalysis
+    public class DuplicateFileDecisionViewModel : BindableBase, IIssueDecisionViewModel
     {
-        public WrongPlacedFileAnalysis(IImmutableList<string> recommendedPaths)
+        private IReadOnlyList<IFileOperation> _operations;
+
+        public DuplicateFileDecisionViewModel(IReadOnlyList<Checkable<FileInformation>> files, IFileIssue issue)
         {
-            RecommendedPaths = recommendedPaths;
+            Files = files;
+            Issue = issue;
+
+            _operations = GetOperations();
+            foreach (var file in files)
+                file.PropertyChanged += FileOnPropertyChanged;
         }
 
-        public IImmutableList<string> RecommendedPaths { get; }
+        public bool IsRecommended { get; } = true;
 
-        public string Description { get; } = $"The file should be relocated.";
-        public bool IsSafeAction { get; } = true;
-        public FileAction Action { get; } = FileAction.Move;
+        // Checked files won't be deleted
+        public IReadOnlyList<Checkable<FileInformation>> Files { get; }
+
+        public IReadOnlyList<IFileOperation> Operations
+        {
+            get { return _operations; }
+            private set => SetProperty(ref _operations, value);
+        }
+
+        public IFileIssue Issue { get; }
+
+        private IReadOnlyList<IFileOperation> GetOperations()
+        {
+            return Files.Where(x => !x.IsChecked).Select(x => new DeleteFileOperation(x.Value)).ToList();
+        }
+
+        private void FileOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            Operations = GetOperations();
+        }
     }
 
-    public static class CollectionStringExtensions
+    public class SimilarFileDecisionViewModel : BindableBase, IIssueDecisionViewModel
     {
-        public static string GetSuffix<T>(this IReadOnlyList<T> collection) => collection.Count == 1 ? "" : "s";
+        private IReadOnlyList<IFileOperation> _operations;
+        private readonly IReadOnlyList<Checkable<FileInformation>> _allFiles;
+        private IReadOnlyList<Checkable<FileInformation>> _files;
+
+        public SimilarFileDecisionViewModel(IReadOnlyList<Checkable<FileInformation>> files, IFileIssue issue)
+        {
+            _allFiles = files;
+            Issue = issue;
+
+            _operations = GetOperations();
+            _files = GetFilesView(ImmutableList<FileInformation>.Empty);
+
+            foreach (var file in files)
+                file.PropertyChanged += FileOnPropertyChanged;
+        }
+
+        public bool IsRecommended { get; } = false;
+
+
+        // Checked files won't be deleted
+        public IReadOnlyList<Checkable<FileInformation>> Files
+        {
+            get { return _files; }
+            set { _files = value; }
+        }
+
+        public IReadOnlyList<IFileOperation> Operations
+        {
+            get { return _operations; }
+            private set => SetProperty(ref _operations, value);
+        }
+
+        public IFileIssue Issue { get; }
+
+        private IReadOnlyList<IFileOperation> GetOperations()
+        {
+            return Files.Where(x => !x.IsChecked).Select(x => new DeleteFileOperation(x.Value)).ToList();
+        }
+
+        private void FileOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            Operations = GetOperations();
+        }
+
+        public bool UpdateDeletedFiles(IReadOnlyList<FileInformation> deletedFiles)
+        {
+            Files = GetFilesView(deletedFiles);
+            return !deletedFiles.Any(x => Issue.File.Filename != x.Filename) && Files.Any();
+        }
+
+        private IReadOnlyList<Checkable<FileInformation>> GetFilesView(IReadOnlyList<FileInformation> deletedFiles)
+        {
+            return _files.Where(x => !x.IsChecked || !deletedFiles.Any(y => y.Filename == x.Value.Filename)).ToList();
+        }
     }
 
-    public enum FileDecision
+    public class InvalidLocationFileDecisionViewModel : BindableBase, IIssueDecisionViewModel
     {
-        Delete,
-        Move,
+        public InvalidLocationFileDecisionViewModel(InvalidFileLocationIssue issue)
+        {
+            Issue = issue;
 
-        None = 50,
-        DecideLater
-    }
+            Operations = new[] { new MoveFileOperation(issue.File, issue.Suggestions.First().Filename) };
+        }
 
-    public enum FileLocationType
-    {
-        CorrectPath,
-        Outside,
-        WrongPlaced
-    }
+        public bool IsRecommended { get; } = true;
 
-    public enum FileAction
-    {
-        Delete,
-        Move,
+        public IReadOnlyList<IFileOperation> Operations { get; }
+
+        public IFileIssue Issue { get; }
+
+        public bool UpdateDeletedFiles(IEnumerable<FileInformation> deletedFiles)
+        {
+            return !deletedFiles.Any(x => x.Filename == Issue.File.Filename);
+        }
     }
 }

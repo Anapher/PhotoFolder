@@ -50,7 +50,7 @@ namespace PhotoFolder.Infrastructure.Photos
             return new FileInfoWrapper(fileInfo, _rootDirectory);
         }
 
-        public bool IsFileInDirectory(string filename) => filename.StartsWith(_rootDirectory);
+        public bool IsFileInDirectory(FileInformation file) => file.IsRelativeFilename || file.Filename.StartsWith(_rootDirectory);
 
         public string GetFileDirectoryRegexPattern(FileInformation fileInformation)
         {
@@ -69,7 +69,7 @@ namespace PhotoFolder.Infrastructure.Photos
             var nonNullValues = values.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value!);
 
             var path = _photoFilenameTemplate.ToString(nonNullValues);
-            return TemplateString.Parse(_fileSystem.Path.GetFileName(path)).ToRegexPattern();
+            return TemplateString.Parse(path).ToRegexPattern();
         }
 
         public string GetRecommendedPath(FileInformation fileInformation)

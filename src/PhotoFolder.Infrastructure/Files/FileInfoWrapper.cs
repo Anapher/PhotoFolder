@@ -23,6 +23,8 @@ namespace PhotoFolder.Infrastructure.Files
         public DateTimeOffset CreatedOn => _fileInfo.CreationTimeUtc;
         public DateTimeOffset ModifiedOn => _fileInfo.LastWriteTimeUtc;
 
+        public bool IsRelativeFilename => _fileInfo.FullName.Length != Filename.Length;
+
         public Stream OpenRead() => _fileInfo.OpenRead();
     }
 }
