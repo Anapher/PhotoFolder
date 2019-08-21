@@ -1,4 +1,8 @@
-﻿using System.Windows.Data;
+﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows.Data;
+using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Commands;
 using Prism.Mvvm;
 
@@ -6,9 +10,10 @@ namespace PhotoFolder.Wpf.ViewModels
 {
     public class DecisionManagerListViewModel : BindableBase
     {
-        private DelegateCommand<IFileDecisionViewModel>? _applyRecommendedActionCommand;
         private DecisionManagerContext? _decisionContext;
         private ListCollectionView? _decisions;
+        private DelegateCommand<IssueDecisionWrapperViewModel>? _openFileCommand;
+        private DelegateCommand<IssueDecisionWrapperViewModel>? _revealFileInFolderCommand;
 
         public ListCollectionView? Decisions
         {
@@ -22,21 +27,43 @@ namespace PhotoFolder.Wpf.ViewModels
             set => SetProperty(ref _decisionContext, value);
         }
 
-        public DelegateCommand<IFileDecisionViewModel> ApplyRecommendedActionCommand
+
+        public DelegateCommand<IssueDecisionWrapperViewModel> OpenFileCommand
         {
             get
             {
-                return _applyRecommendedActionCommand ??= new DelegateCommand<IFileDecisionViewModel>(parameter =>
+                return _openFileCommand ??= new DelegateCommand<IssueDecisionWrapperViewModel>(parameter =>
                 {
-                    parameter.SelectedDecision = parameter.RecommendedDecision;
+                    if (_decisionContext == null) throw new InvalidOperationException();
+
+                    var absolutePath = _decisionContext.PhotoDirectory.GetAbsolutePath(parameter.Decision.Issue.File);
+                    Process.Start(absolutePath);
+                });
+            }
+        }
+
+        public DelegateCommand<IssueDecisionWrapperViewModel> RevealFileInFolderCommand
+        {
+            get
+            {
+                return _revealFileInFolderCommand ??= new DelegateCommand<IssueDecisionWrapperViewModel>(parameter =>
+                {
+                    if (_decisionContext == null) throw new InvalidOperationException();
+
+                    var absolutePath = _decisionContext.PhotoDirectory.GetAbsolutePath(parameter.Decision.Issue.File);
+                    Process.Start("explorer.exe", $"/select, \"{absolutePath}\"");
                 });
             }
         }
 
         public void Initialize(DecisionManagerContext context)
         {
-            Decisions = new ListCollectionView(context.Decisions);
             DecisionContext = context;
+
+            Decisions = new ListCollectionView(context.Issues);
+
+            Decisions.SortDescriptions.Add(new SortDescription("Decision.Issue.File.Filename", ListSortDirection.Ascending));
+            Decisions.SortDescriptions.Add(new SortDescription("IsDeleteDecision", ListSortDirection.Descending));
         }
     }
 }

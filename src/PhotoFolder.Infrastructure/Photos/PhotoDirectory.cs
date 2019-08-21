@@ -50,7 +50,8 @@ namespace PhotoFolder.Infrastructure.Photos
             return new FileInfoWrapper(fileInfo, _rootDirectory);
         }
 
-        public bool IsFileInDirectory(FileInformation file) => file.IsRelativeFilename || file.Filename.StartsWith(_rootDirectory);
+        public string GetAbsolutePath(FileInformation fileInformation) =>
+            fileInformation.IsRelativeFilename ? _fileSystem.Path.Combine(_rootDirectory, fileInformation.Filename) : fileInformation.Filename;
 
         public string GetFileDirectoryRegexPattern(FileInformation fileInformation)
         {

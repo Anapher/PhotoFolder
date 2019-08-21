@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Commands;
 using Prism.Mvvm;
 
@@ -27,8 +28,8 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (DecisionContext == null) return;
 
-                    foreach (var decision in DecisionContext.Decisions)
-                        decision.SelectedDecision = decision.RecommendedDecision;
+                    foreach (var issue in DecisionContext.Issues.Where(x => x.Decision.IsRecommended))
+                        issue.Execute = true;
                 });
             }
         }
@@ -41,8 +42,8 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (DecisionContext == null) return;
 
-                    foreach (var decision in DecisionContext.Decisions)
-                        decision.SelectedDecision = FileDecision.None;
+                    foreach (var issue in DecisionContext.Issues)
+                        issue.Execute = false;
                 });
             }
         }
@@ -55,9 +56,8 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (DecisionContext == null) return;
 
-                    foreach (var decision in DecisionContext.Decisions.Where(x =>
-                        x.RecommendedDecision == FileDecision.Move))
-                        decision.SelectedDecision = FileDecision.Move;
+                    foreach (var issue in DecisionContext.Issues.Where(x => x.Decision is InvalidLocationFileDecisionViewModel))
+                        issue.Execute = true;
                 });
             }
         }
@@ -69,10 +69,6 @@ namespace PhotoFolder.Wpf.ViewModels
                 return _applyRemoveActionsCommand ??= new DelegateCommand(() =>
                 {
                     if (DecisionContext == null) return;
-
-                    foreach (var decision in DecisionContext.Decisions.Where(x =>
-                        x.RecommendedDecision == FileDecision.Delete))
-                        decision.SelectedDecision = FileDecision.Delete;
                 });
             }
         }

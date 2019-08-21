@@ -1,9 +1,9 @@
 using Autofac;
-using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces;
 using PhotoFolder.Core.Services;
 using System.Collections.Generic;
+using PhotoFolder.Core.Interfaces.Services;
 
 namespace PhotoFolder.Core
 {
@@ -13,6 +13,7 @@ namespace PhotoFolder.Core
         {
             builder.RegisterType<FileContentInfoComparer>().As<IEqualityComparer<IFileContentInfo>>();
             builder.RegisterAssemblyTypes(ThisAssembly).AsClosedTypesOf(typeof(IUseCaseRequestHandler<,>)).AsImplementedInterfaces();
+            builder.RegisterAssemblyTypes(ThisAssembly).AssignableTo<IFileIntegrityValidator>().As<IFileIntegrityValidator>().SingleInstance();
         }
     }
 }

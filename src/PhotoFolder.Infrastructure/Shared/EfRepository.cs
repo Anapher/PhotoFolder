@@ -19,7 +19,7 @@ namespace PhotoFolder.Infrastructure.Shared
             _appDbContext = appDbContext;
         }
 
-        public async Task<IList<T>> GetAll()
+        public async Task<IReadOnlyList<T>> GetAll()
         {
             return await _appDbContext.Set<T>().ToListAsync();
         }
@@ -48,7 +48,7 @@ namespace PhotoFolder.Infrastructure.Shared
             return QuerySpecs(specs).FirstOrDefaultAsync();
         }
 
-        public async Task<IList<T>> GetAllBySpecs(params ISpecification<T>[] specs)
+        public async Task<IReadOnlyList<T>> GetAllBySpecs(params ISpecification<T>[] specs)
         {
             return await QuerySpecs(specs).ToListAsync();
         }

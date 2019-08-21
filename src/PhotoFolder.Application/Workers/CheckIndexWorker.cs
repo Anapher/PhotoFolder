@@ -27,7 +27,7 @@ namespace PhotoFolder.Application.Workers
         public async Task<FileCheckReport> Execute(CheckIndexRequest request, CancellationToken cancellationToken = default)
         {
             // get all files from the repository
-            IList<IndexedFile> indexedFiles;
+            IReadOnlyList<IndexedFile> indexedFiles;
             using (var context = request.Directory.GetDataContext())
             {
                 indexedFiles = await context.FileRepository.GetAllBySpecs(new IncludeFileLocationsSpec());

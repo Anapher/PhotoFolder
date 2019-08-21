@@ -1,15 +1,12 @@
 ﻿#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
-using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.UseCaseRequests;
 using PhotoFolder.Core.Dto.UseCaseResponses;
 using PhotoFolder.Core.Interfaces;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Interfaces.UseCases;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace PhotoFolder.Core.UseCases

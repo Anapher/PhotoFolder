@@ -2,11 +2,11 @@
     x:Class="PhotoFolder.Wpf.Views.DecisionManagerListView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:PhotoFolder.Wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:decisionManager="clr-namespace:PhotoFolder.Wpf.Views.DecisionManager"
-    xmlns:extensions="clr-namespace:PhotoFolder.Wpf.Extensions"
-    xmlns:local="clr-namespace:PhotoFolder.Wpf.Views"
+    xmlns:decision="clr-namespace:PhotoFolder.Wpf.Views.Decision"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:PhotoFolder.Wpf.ViewModels.Models"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
     d:DataContext="{d:DesignInstance viewModels:DecisionManagerListViewModel}"
@@ -14,21 +14,55 @@
     d:DesignWidth="800"
     mvvm:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:DecisionIssueDescriptionConverter x:Key="DecisionIssueDescriptionConverter" />
+
+        <ContextMenu x:Key="ItemContextMenu">
+            <MenuItem
+                Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.RevealFileInFolderCommand}"
+                CommandParameter="{Binding}"
+                Header="Reveal in Explorer"
+                Icon="{StaticResource ProjectFolderOpenIcon}" />
+            <MenuItem
+                Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.OpenFileCommand}"
+                CommandParameter="{Binding}"
+                Header="Open File"
+                Icon="{StaticResource OpenFileIcon}" />
+        </ContextMenu>
+    </UserControl.Resources>
     <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Decisions}">
         <DataGrid.Columns>
-            <DataGridTextColumn
-                Binding="{Binding Description}"
-                Header="Status"
-                IsReadOnly="True" />
+            <DataGridTemplateColumn Header="Issue" IsReadOnly="True">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate DataType="{x:Type models:IssueDecisionWrapperViewModel}">
+                        <StackPanel Margin="5" Orientation="Horizontal">
+                            <ContentControl Content="{Binding Decision}">
+                                <ContentControl.Resources>
+                                    <DataTemplate DataType="{x:Type models:InvalidLocationFileDecisionViewModel}">
+                                        <ContentControl Content="{StaticResource FileDestinationIcon}" />
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type models:DuplicateFileDecisionViewModel}">
+                                        <ContentControl Content="{StaticResource FileCollectionIcon}" />
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type models:SimilarFileDecisionViewModel}">
+                                        <ContentControl Content="{StaticResource ImageGroupIcon}" />
+                                    </DataTemplate>
+                                </ContentControl.Resources>
+                            </ContentControl>
+                            <TextBlock Margin="5,0,0,0" Text="{Binding Decision, Converter={StaticResource DecisionIssueDescriptionConverter}}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTextColumn
                 Width="*"
-                Binding="{Binding File.Filename}"
+                Binding="{Binding Decision.Issue.File.Filename}"
                 Header="Path"
                 IsReadOnly="True">
                 <DataGridTextColumn.CellStyle>
                     <Style BasedOn="{StaticResource MahApps.Styles.DataGridCell}" TargetType="DataGridCell">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsInPhotoDirectory}" Value="false">
+                            <DataTrigger Binding="{Binding Decision.Issue.File.IsRelativeFilename}" Value="false">
                                 <Setter Property="Foreground" Value="#2980b9" />
                             </DataTrigger>
                             <Trigger Property="IsSelected" Value="True">
@@ -38,83 +72,41 @@
                     </Style>
                 </DataGridTextColumn.CellStyle>
             </DataGridTextColumn>
-            <DataGridComboBoxColumn
-                Width="*"
-                Header="Target Path"
-                SelectedItemBinding="{Binding TargetPath}">
-                <DataGridComboBoxColumn.ElementStyle>
-                    <Style TargetType="ComboBox">
-                        <Setter Property="ItemsSource" Value="{Binding RecommendedPaths}" />
-                    </Style>
-                </DataGridComboBoxColumn.ElementStyle>
-                <DataGridComboBoxColumn.EditingElementStyle>
-                    <Style TargetType="ComboBox">
-                        <Setter Property="ItemsSource" Value="{Binding RecommendedPaths}" />
-                    </Style>
-                </DataGridComboBoxColumn.EditingElementStyle>
-            </DataGridComboBoxColumn>
             <DataGridTemplateColumn
-                Width="100"
-                MinWidth="100"
-                MaxWidth="100"
+                Width="150"
                 CanUserResize="False"
-                Header="Recommend"
+                Header="Selected Operation"
                 IsReadOnly="True">
                 <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate DataType="{x:Type viewModels:IFileDecisionViewModel}">
-                        <Button
-                            extensions:ControlExtensions.DoubleClickCommand="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ApplyRecommendedActionCommand}"
-                            extensions:ControlExtensions.DoubleClickCommandParameter="{Binding}"
-                            Style="{StaticResource NoStyledButton}">
-                            <decisionManager:FileDecisionText
-                                Decision="{Binding RecommendedDecision}"
-                                IsInPhotoDirectory="{Binding IsInPhotoDirectory}"
-                                MoveFilesFromOutside="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DecisionContext.MoveFilesFromOutside}" />
-                        </Button>
+                    <DataTemplate DataType="{x:Type models:IssueDecisionWrapperViewModel}">
+                        <decision:DecisionOperationView DecisionViewModel="{Binding Decision}" RemoveFilesFromOutside="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DecisionContext.RemoveFilesFromOutside}" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-
             <DataGridTemplateColumn
-                Width="120"
-                MinWidth="120"
-                MaxWidth="120"
+                Width="80"
                 CanUserResize="False"
-                Header="Action"
+                Header="Resolve"
                 IsReadOnly="True">
                 <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate DataType="{x:Type viewModels:IFileDecisionViewModel}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <decisionManager:FileDecisionIcon
-                                Width="16"
-                                Margin="0,0,4,0"
-                                Decision="{Binding SelectedDecision}"
-                                IsInPhotoDirectory="{Binding IsInPhotoDirectory}"
-                                MoveFilesFromOutside="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DecisionContext.MoveFilesFromOutside}" />
-                            <ComboBox
-                                Grid.Column="1"
-                                ItemsSource="{Binding PossibleDecisions}"
-                                SelectedItem="{Binding SelectedDecision, UpdateSourceTrigger=PropertyChanged}">
-                                <ComboBox.Style>
-                                    <Style TargetType="ComboBox" />
-                                </ComboBox.Style>
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type viewModels:FileDecision}">
-                                        <decisionManager:FileDecisionText
-                                            Decision="{Binding}"
-                                            IsInPhotoDirectory="{Binding RelativeSource={RelativeSource AncestorType=ComboBox}, Path=DataContext.IsInPhotoDirectory}"
-                                            MoveFilesFromOutside="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DecisionContext.MoveFilesFromOutside}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </Grid>
+                    <DataTemplate DataType="{x:Type models:IssueDecisionWrapperViewModel}">
+                        <CheckBox HorizontalAlignment="Center" IsChecked="{Binding Execute, UpdateSourceTrigger=PropertyChanged}" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
         </DataGrid.Columns>
+        <DataGrid.RowStyle>
+            <Style BasedOn="{StaticResource MahApps.Styles.DataGridRow}" TargetType="DataGridRow">
+                <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsVisible}" Value="false">
+                        <Setter Property="IsEnabled" Value="False" />
+                        <Setter Property="Opacity" Value=".5" />
+                        <Setter Property="Background" Value="{StaticResource MahApps.Brushes.Gray8}" />
+                        <Setter Property="IsSelected" Value="False" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </DataGrid.RowStyle>
     </DataGrid>
 </UserControl>

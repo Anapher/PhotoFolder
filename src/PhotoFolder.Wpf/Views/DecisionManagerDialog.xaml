@@ -33,7 +33,7 @@
                     <ColumnDefinition.Style>
                         <Style TargetType="ColumnDefinition">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Context.SelectedDecision}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Context.SelectedIssue}" Value="{x:Null}">
                                     <Setter Property="Width" Value="0" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -44,7 +44,7 @@
                     <ColumnDefinition.Style>
                         <Style TargetType="ColumnDefinition">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Context.SelectedDecision}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Context.SelectedIssue}" Value="{x:Null}">
                                     <Setter Property="Width" Value="0" />
                                 </DataTrigger>
                             </Style.Triggers>

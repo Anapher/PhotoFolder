@@ -1,16 +1,17 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows.Media.Imaging;
+using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Mvvm;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
     public class DecisionManagerDetailsViewModel : BindableBase
     {
-        private IFileDecisionViewModel? _selection;
+        private IssueDecisionWrapperViewModel? _selection;
         private BitmapSource? _thumbnail;
 
-        public IFileDecisionViewModel? Selection
+        public IssueDecisionWrapperViewModel? Selection
         {
             get => _selection;
             set => SetProperty(ref _selection, value);
@@ -29,14 +30,14 @@ namespace PhotoFolder.Wpf.ViewModels
 
         private void ContextOnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(DecisionManagerContext.SelectedDecision))
+            if (e.PropertyName == nameof(DecisionManagerContext.SelectedIssue))
             {
                 var context = (DecisionManagerContext) sender;
-                OnSelectedDecisionChanged(context.SelectedDecision);
+                OnSelectedDecisionChanged(context.SelectedIssue);
             }
         }
 
-        public void OnSelectedDecisionChanged(IFileDecisionViewModel? viewModel)
+        public void OnSelectedDecisionChanged(IssueDecisionWrapperViewModel? viewModel)
         {
             Selection = viewModel;
 
@@ -46,7 +47,7 @@ namespace PhotoFolder.Wpf.ViewModels
             }
             else
             {
-                Thumbnail = new BitmapImage(new Uri(viewModel.File.Filename));
+                Thumbnail = new BitmapImage(new Uri(viewModel.Decision.Issue.File.Filename));
             }
         }
     }

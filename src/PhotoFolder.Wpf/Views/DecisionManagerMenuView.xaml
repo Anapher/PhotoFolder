@@ -31,9 +31,11 @@
                 Header="Copy/move files"
                 Icon="{StaticResource FileDestinationIcon}" />
         </MenuItem>
-        <MenuItem
-            Header="Move files from outside"
-            IsCheckable="True"
-            IsChecked="{Binding DecisionContext.MoveFilesFromOutside}" />
+        <MenuItem Header="Options">
+            <MenuItem
+                Header="Remove files from outside"
+                IsCheckable="True"
+                IsChecked="{Binding DecisionContext.RemoveFilesFromOutside}" />
+        </MenuItem>
     </Menu>
 </UserControl>

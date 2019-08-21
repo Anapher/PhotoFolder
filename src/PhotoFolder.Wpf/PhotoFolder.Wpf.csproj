@@ -13,12 +13,12 @@
     <None Remove="Resources\Styles.xaml" />
     <None Remove="Resources\VisualStudioIcons.xaml" />
     <None Remove="Views\ConfigureFolderDialog.xaml" />
+    <None Remove="Views\DecisionIssueTextControl.xaml" />
     <None Remove="Views\DecisionManagerDetailsView.xaml" />
     <None Remove="Views\DecisionManagerDialog.xaml" />
     <None Remove="Views\DecisionManagerListView.xaml" />
     <None Remove="Views\DecisionManagerMenuView.xaml" />
-    <None Remove="Views\DecisionManager\FileDecisionIcon.xaml" />
-    <None Remove="Views\DecisionManager\FileDecisionText.xaml" />
+    <None Remove="Views\Decision\DecisionOperationView.xaml" />
   </ItemGroup>
 
   <ItemGroup>

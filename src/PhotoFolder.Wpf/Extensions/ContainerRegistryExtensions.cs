@@ -13,7 +13,7 @@ namespace PhotoFolder.Wpf.Extensions
         {
             foreach (var registration in autofac.ComponentRegistry.Registrations)
             {
-                if (registration.Activator.LimitType == typeof(Autofac.Core.Lifetime.LifetimeScope)) continue;
+                if (registration.Activator.LimitType == typeof(LifetimeScope)) continue;
 
                 Action<Type> register;
                 if (registration.Lifetime.GetType() == typeof(CurrentScopeLifetime))

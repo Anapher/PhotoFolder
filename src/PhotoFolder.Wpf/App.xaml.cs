@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System.Collections.Generic;
+using Autofac;
 using Microsoft.Extensions.Options;
 using PhotoFolder.Application;
 using PhotoFolder.Core;
@@ -11,6 +12,10 @@ using Prism.Ioc;
 using Prism.Modularity;
 using System.IO.Abstractions;
 using System.Windows;
+using DryIoc;
+using PhotoFolder.Core.Interfaces.Services;
+using PhotoFolder.Core.Services.FileIntegrityValidators;
+using Prism.DryIoc;
 
 namespace PhotoFolder.Wpf
 {
@@ -38,12 +43,18 @@ namespace PhotoFolder.Wpf
             var container = builder.Build();
             containerRegistry.Populate(container);
 
-            var test = container.Resolve<IPhotoDirectoryLoader>();
-
             containerRegistry.Register<IWindowService, WindowService>();
             containerRegistry.RegisterDialogWindow<DialogWindow>();
             containerRegistry.RegisterInstance<IFileSystem>(new FileSystem());
             containerRegistry.RegisterSingleton<IAppSettingsProvider, AppSettingsProvider>();
+
+            var drylocContainer = containerRegistry.GetContainer();
+            drylocContainer.Register<IFileIntegrityValidator, DuplicateFileIntegrityValidator>(Reuse.Singleton, null, null,
+                IfAlreadyRegistered.AppendNewImplementation);
+            drylocContainer.Register<IFileIntegrityValidator, SimilarFileIntegrityValidator>(Reuse.Singleton, null, null,
+                IfAlreadyRegistered.AppendNewImplementation);
+            drylocContainer.Register<IFileIntegrityValidator, InvalidLocationFileIntegrityValidator>(Reuse.Singleton, null, null,
+                IfAlreadyRegistered.AppendNewImplementation);
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
