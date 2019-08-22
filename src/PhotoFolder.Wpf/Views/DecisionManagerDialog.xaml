@@ -28,7 +28,7 @@
         <ContentControl prism:RegionManager.RegionContext="{Binding Context}" prism:RegionManager.RegionName="{x:Static wpf:RegionNames.DecisionManagerMenu}" />
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="1">
                     <ColumnDefinition.Style>
                         <Style TargetType="ColumnDefinition">

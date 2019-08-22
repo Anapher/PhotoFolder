@@ -27,7 +27,6 @@ namespace PhotoFolder.Wpf.ViewModels
             set => SetProperty(ref _decisionContext, value);
         }
 
-
         public DelegateCommand<IssueDecisionWrapperViewModel> OpenFileCommand
         {
             get
@@ -37,7 +36,7 @@ namespace PhotoFolder.Wpf.ViewModels
                     if (_decisionContext == null) throw new InvalidOperationException();
 
                     var absolutePath = _decisionContext.PhotoDirectory.GetAbsolutePath(parameter.Decision.Issue.File);
-                    Process.Start(absolutePath);
+                    Process.Start(new ProcessStartInfo(absolutePath) {UseShellExecute = true});
                 });
             }
         }

@@ -16,21 +16,25 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:DecisionIssueDescriptionConverter x:Key="DecisionIssueDescriptionConverter" />
-
-        <ContextMenu x:Key="ItemContextMenu">
-            <MenuItem
-                Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.RevealFileInFolderCommand}"
-                CommandParameter="{Binding}"
-                Header="Reveal in Explorer"
-                Icon="{StaticResource ProjectFolderOpenIcon}" />
-            <MenuItem
-                Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.OpenFileCommand}"
-                CommandParameter="{Binding}"
-                Header="Open File"
-                Icon="{StaticResource OpenFileIcon}" />
-        </ContextMenu>
     </UserControl.Resources>
-    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Decisions}">
+    <DataGrid
+        AutoGenerateColumns="False"
+        ItemsSource="{Binding Decisions}"
+        SelectedItem="{Binding DecisionContext.SelectedIssue}">
+        <DataGrid.Resources>
+            <ContextMenu x:Key="ItemContextMenu">
+                <MenuItem
+                    Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RevealFileInFolderCommand}"
+                    CommandParameter="{Binding}"
+                    Header="Reveal in Explorer"
+                    Icon="{StaticResource ProjectFolderOpenIcon}" />
+                <MenuItem
+                    Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.OpenFileCommand}"
+                    CommandParameter="{Binding}"
+                    Header="Open File"
+                    Icon="{StaticResource OpenFileIcon}" />
+            </ContextMenu>
+        </DataGrid.Resources>
         <DataGrid.Columns>
             <DataGridTemplateColumn Header="Issue" IsReadOnly="True">
                 <DataGridTemplateColumn.CellTemplate>

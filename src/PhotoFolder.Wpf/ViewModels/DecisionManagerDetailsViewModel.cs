@@ -1,5 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Mvvm;
@@ -8,6 +12,7 @@ namespace PhotoFolder.Wpf.ViewModels
 {
     public class DecisionManagerDetailsViewModel : BindableBase
     {
+        private DecisionManagerContext? _decisionContext;
         private IssueDecisionWrapperViewModel? _selection;
         private BitmapSource? _thumbnail;
 
@@ -23,8 +28,15 @@ namespace PhotoFolder.Wpf.ViewModels
             set => SetProperty(ref _thumbnail, value);
         }
 
+        public DecisionManagerContext? DecisionContext
+        {
+            get => _decisionContext;
+            private set => SetProperty(ref _decisionContext, value);
+        }
+
         public void Initialize(DecisionManagerContext context)
         {
+            DecisionContext = context;
             context.PropertyChanged += ContextOnPropertyChanged;
         }
 
@@ -37,18 +49,37 @@ namespace PhotoFolder.Wpf.ViewModels
             }
         }
 
-        public void OnSelectedDecisionChanged(IssueDecisionWrapperViewModel? viewModel)
+        public async void OnSelectedDecisionChanged(IssueDecisionWrapperViewModel? viewModel)
         {
             Selection = viewModel;
 
             if (viewModel == null)
-            {
                 Thumbnail = null;
-            }
             else
             {
-                Thumbnail = new BitmapImage(new Uri(viewModel.Decision.Issue.File.Filename));
+                if (DecisionContext == null) return;
+
+                var absolutePath = DecisionContext.PhotoDirectory.GetAbsolutePath(viewModel.Decision.Issue.File);
+                var image = await LoadImageAsync(absolutePath);
+
+                if (Selection == viewModel)
+                    Thumbnail = image;
             }
+        }
+
+        private static Task<BitmapImage> LoadImageAsync(string filename)
+        {
+            return Task.Run(() =>
+            {
+                var img = new BitmapImage();
+                img.BeginInit();
+                img.CacheOption = BitmapCacheOption.OnLoad;
+                img.UriSource = new Uri(filename);
+                img.EndInit();
+                img.Freeze();
+
+                return img;
+            });
         }
     }
 }
