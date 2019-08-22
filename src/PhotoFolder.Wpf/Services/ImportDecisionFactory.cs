@@ -31,7 +31,7 @@ namespace PhotoFolder.Wpf.Services
             if (isInDirectory)
             {
                 // just keep one file, try to find the file that is located correctly
-                var bestFile = duplicateFilesIssue.RelevantFiles.FirstOrDefault(x => Regex.IsMatch(x.Filename, photoDirectory.GetFilenameRegexPattern(x))) ??
+                var bestFile = duplicateFilesIssue.RelevantFiles.FirstOrDefault(x => Regex.IsMatch(x.Filename, photoDirectory.GetFilenameTemplate(x).ToRegexPattern())) ??
                                duplicateFilesIssue.File;
                 filesToKeep = new[] {duplicateFilesIssue.File}.Concat(duplicateFilesIssue.RelevantFiles)
                     .Select(x => new Checkable<FileInformation>(x, x == bestFile));

@@ -22,6 +22,8 @@ namespace PhotoFolder.Infrastructure
 
             builder.RegisterType<PhotoDirectoryCreator>().As<IPhotoDirectoryCreator>();
             builder.RegisterType<PhotoDirectoryLoader>().As<IPhotoDirectoryLoader>();
+
+            builder.RegisterType<PathUtils>().As<IPathUtils>().SingleInstance();
         }
     }
 }

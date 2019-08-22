@@ -1,0 +1,168 @@
+﻿<UserControl
+    x:Class="PhotoFolder.Wpf.Views.DecisionInvalidLocationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converter="clr-namespace:PhotoFolder.Wpf.Converter"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mvvm="http://prismlibrary.com/"
+    xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
+    Width="800"
+    Height="350"
+    d:DataContext="{d:DesignInstance viewModels:DecisionInvalidLocationViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mvvm:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <converter:EnumBooleanConverter x:Key="EnumBooleanConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Margin="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="32" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="16" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Path Template" />
+                <TextBlock
+                    Margin="0,2,0,0"
+                    FontSize="14"
+                    Text="{Binding FilePathTemplate}" />
+            </StackPanel>
+            <StackPanel
+                Grid.Row="0"
+                Grid.Column="2"
+                Orientation="Vertical">
+                <TextBlock Text="Path RegEx" />
+                <TextBlock
+                    Margin="0,2,0,0"
+                    FontSize="14"
+                    Text="{Binding FilePathRegex}" />
+            </StackPanel>
+            <StackPanel
+                Grid.Row="2"
+                Grid.Column="0"
+                Orientation="Vertical">
+                <TextBlock Text="Current Path" />
+                <TextBlock
+                    Margin="0,2,0,0"
+                    FontSize="14"
+                    Text="{Binding Issue.File.Filename}" />
+            </StackPanel>
+            <StackPanel
+                Grid.Row="2"
+                Grid.Column="2"
+                Orientation="Vertical">
+                <TextBlock Text="New Path" />
+                <TextBlock
+                    Margin="0,2,0,0"
+                    FontSize="14"
+                    Text="{Binding NewPath}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsNewPathValid}" Value="true">
+                                    <Setter Property="Foreground" Value="#27ae60" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsNewPathValid}" Value="false">
+                                    <Setter Property="Foreground" Value="#c0392b" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="16,8,16,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Vertical">
+                <RadioButton Content="Use Suggestion" IsChecked="{Binding PathConfigurator, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static viewModels:PathConfigurator.Suggestions}}" />
+                <ComboBox
+                    Margin="0,16,0,0"
+                    DisplayMemberPath="Filename"
+                    ItemsSource="{Binding Suggestions}"
+                    SelectedItem="{Binding SelectedSuggestion}" />
+            </StackPanel>
+            <Rectangle
+                Grid.Column="1"
+                Width="1"
+                Fill="{StaticResource MahApps.Brushes.Gray8}"
+                SnapsToDevicePixels="True" />
+            <StackPanel Grid.Column="2" Orientation="Vertical">
+                <RadioButton Content="Configure Path" IsChecked="{Binding PathConfigurator, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static viewModels:PathConfigurator.Configure}}" />
+                <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding PathVariables}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:KeyValueViewModel}">
+                            <StackPanel Margin="0,8,0,0" Orientation="Vertical">
+                                <TextBlock Text="{Binding Key, Mode=OneTime}" />
+                                <TextBox Margin="0,2,0,0" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+            <Rectangle
+                Grid.Column="3"
+                Width="1"
+                Fill="{StaticResource MahApps.Brushes.Gray8}"
+                SnapsToDevicePixels="True" />
+            <StackPanel Grid.Column="4" Orientation="Vertical">
+                <RadioButton Content="Custom Path" IsChecked="{Binding PathConfigurator, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static viewModels:PathConfigurator.Custom}}" />
+                <TextBox Margin="0,16,0,0" Text="{Binding CustomPath, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </Grid>
+
+
+        <Border
+            Grid.Row="2"
+            Background="{StaticResource DialogBottomBrush}"
+            BorderBrush="{StaticResource MahApps.Brushes.Gray5}"
+            BorderThickness="0,1,0,0"
+            SnapsToDevicePixels="True">
+            <Grid Margin="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="Apply for:" />
+                    <RadioButton
+                        Margin="16,0"
+                        Content="Current issue"
+                        IsChecked="{Binding DecisionScope, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static viewModels:DecisionScope.CurrentIssue}}" />
+                    <RadioButton Content="All issues with same source folder" IsChecked="{Binding DecisionScope, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static viewModels:DecisionScope.SameSource}}" />
+                    <RadioButton
+                        Margin="16,0"
+                        Content="All issues with same target folder"
+                        IsChecked="{Binding DecisionScope, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static viewModels:DecisionScope.SameTarget}}" />
+                </StackPanel>
+                <Button
+                    Grid.Column="1"
+                    MinWidth="120"
+                    Command="{Binding ApplyCommand}"
+                    Content="Apply"
+                    IsDefault="True" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

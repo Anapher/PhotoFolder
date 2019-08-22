@@ -5,15 +5,23 @@ using System.Windows.Data;
 using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Commands;
 using Prism.Mvvm;
+using Prism.Services.Dialogs;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
     public class DecisionManagerListViewModel : BindableBase
     {
+        private readonly IDialogService _dialogService;
         private DecisionManagerContext? _decisionContext;
         private ListCollectionView? _decisions;
         private DelegateCommand<IssueDecisionWrapperViewModel>? _openFileCommand;
         private DelegateCommand<IssueDecisionWrapperViewModel>? _revealFileInFolderCommand;
+        private DelegateCommand<IssueDecisionWrapperViewModel>? _openAssistantCommand;
+
+        public DecisionManagerListViewModel(IDialogService dialogService)
+        {
+            _dialogService = dialogService;
+        }
 
         public ListCollectionView? Decisions
         {
@@ -51,6 +59,20 @@ namespace PhotoFolder.Wpf.ViewModels
 
                     var absolutePath = _decisionContext.PhotoDirectory.GetAbsolutePath(parameter.Decision.Issue.File);
                     Process.Start("explorer.exe", $"/select, \"{absolutePath}\"");
+                });
+            }
+        }
+
+        public DelegateCommand<IssueDecisionWrapperViewModel> OpenAssistantCommand
+        {
+            get
+            {
+                return _openAssistantCommand ??= new DelegateCommand<IssueDecisionWrapperViewModel>(parameter =>
+                {
+                    if (DecisionContext == null) throw new InvalidOperationException();
+
+                    var parameters = new DialogParameters {{"decision", parameter}, {"decisionManagerContext", DecisionContext}};
+                    _dialogService.ShowDialog("DecisionAssistant", parameters, _ => {});
                 });
             }
         }

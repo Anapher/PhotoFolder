@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using PhotoFolder.Core.Domain.Template;
 
-namespace PhotoFolder.Infrastructure.TemplatePath
+namespace PhotoFolder.Core.Services
 {
     public static class TemplateStringParser
     {

@@ -1,4 +1,4 @@
-﻿namespace PhotoFolder.Infrastructure.TemplatePath
+﻿namespace PhotoFolder.Core.Domain.Template
 {
     public class PlaceholderFragment : ITemplateFragment
     {

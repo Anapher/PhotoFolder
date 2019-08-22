@@ -2,17 +2,20 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PhotoFolder.Core.Services;
 
-namespace PhotoFolder.Infrastructure.TemplatePath
+namespace PhotoFolder.Core.Domain.Template
 {
     public class TemplateString
     {
+        private readonly IReadOnlyList<ITemplateFragment> _fragments;
+
         public TemplateString(IEnumerable<ITemplateFragment> fragments)
         {
-            Fragments = fragments.ToList();
+            _fragments = fragments.ToList();
         }
 
-        public IEnumerable<ITemplateFragment> Fragments { get; }
+        public IEnumerable<ITemplateFragment> Fragments => _fragments;
 
         public static TemplateString Parse(string s)
         {
@@ -25,9 +28,13 @@ namespace PhotoFolder.Infrastructure.TemplatePath
             return Fragments.Aggregate("^", (s, x) =>
             {
                 if (x is TextFragment)
-                    return s + Regex.Escape(x.Value);
+                {
+                    if (_fragments.SkipWhile(y => y != x).Skip(1).FirstOrDefault() is PlaceholderFragment)
+                        return s + Regex.Escape(x.Value.TrimEnd(' ', '-'));
+                    else return s + Regex.Escape(x.Value);
+                }
 
-                return s + ".+?";
+                return s + ".*?";
             }) + "$";
         }
 

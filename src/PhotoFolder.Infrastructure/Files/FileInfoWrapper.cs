@@ -14,8 +14,8 @@ namespace PhotoFolder.Infrastructure.Files
             _fileInfo = fileInfo;
 
             if (rootDirectory == null)
-                Filename = fileInfo.FullName;
-            else Filename = fileInfo.FullName.TrimStart(rootDirectory + fileInfo.FileSystem.Path.DirectorySeparatorChar);
+                Filename = fileInfo.FullName.ToForwardSlashes();
+            else Filename = fileInfo.FullName.TrimStart(rootDirectory + fileInfo.FileSystem.Path.DirectorySeparatorChar).ToForwardSlashes();
         }
 
         public string Filename { get; }

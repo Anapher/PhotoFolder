@@ -7,5 +7,6 @@
         public const string DecisionManagerMenu = nameof(DecisionManagerMenu);
         public const string DecisionManagerList = nameof(DecisionManagerList);
         public const string DecisionManagerSelectionDetails = nameof(DecisionManagerSelectionDetails);
+        public const string InvalidLocationDecision = nameof(InvalidLocationDecision);
     }
 }

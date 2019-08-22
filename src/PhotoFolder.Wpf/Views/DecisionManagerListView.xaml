@@ -24,6 +24,12 @@
         <DataGrid.Resources>
             <ContextMenu x:Key="ItemContextMenu">
                 <MenuItem
+                    Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.OpenAssistantCommand}"
+                    CommandParameter="{Binding}"
+                    Header="Open Assistant"
+                    Icon="{StaticResource MagicWandIcon}" />
+                <Separator />
+                <MenuItem
                     Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RevealFileInFolderCommand}"
                     CommandParameter="{Binding}"
                     Header="Reveal in Explorer"

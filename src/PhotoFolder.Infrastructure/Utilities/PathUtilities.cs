@@ -5,6 +5,8 @@ namespace PhotoFolder.Infrastructure.Utilities
 {
     public static class PathUtilities
     {
+        public static string ToForwardSlashes(this string path) => path.Replace('\\', '/');
+
         /// <summary>
         ///     Apply the modifiers on every part of the path and return the result
         /// </summary>

@@ -1,11 +1,12 @@
 ﻿using PhotoFolder.Core.Extensions;
 using System.Collections.Generic;
+using PhotoFolder.Core.Domain.Template;
 
 namespace PhotoFolder.Core.Dto.Services.FileIssue
 {
     public class InvalidFileLocationIssue : IFileIssue
     {
-        public InvalidFileLocationIssue(FileInformation file, string directoryPathTemplate, IReadOnlyList<FilenameSuggestion> suggestions, string correctFilename)
+        public InvalidFileLocationIssue(FileInformation file, TemplateString directoryPathTemplate, IReadOnlyList<FilenameSuggestion> suggestions, string correctFilename)
         {
             File = file;
             DirectoryPathTemplate = directoryPathTemplate;
@@ -16,7 +17,7 @@ namespace PhotoFolder.Core.Dto.Services.FileIssue
         public FileInformation File { get; }
         public IEnumerable<FileInformation> RelevantFiles => File.Yield();
 
-        public string DirectoryPathTemplate { get; }
+        public TemplateString DirectoryPathTemplate { get; }
         public IReadOnlyList<FilenameSuggestion> Suggestions { get; }
 
         public string CorrectFilename { get; }

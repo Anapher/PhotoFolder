@@ -1,5 +1,5 @@
 ﻿using System;
-using PhotoFolder.Infrastructure.TemplatePath;
+using PhotoFolder.Core.Domain.Template;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;

@@ -4,17 +4,18 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using PhotoFolder.Core.Domain.Template;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Infrastructure.Consts;
 using PhotoFolder.Infrastructure.Data;
-using PhotoFolder.Infrastructure.TemplatePath;
 using PhotoFolder.Infrastructure.Utilities;
 using FileInfoWrapper = PhotoFolder.Infrastructure.Files.FileInfoWrapper;
 using IFile = PhotoFolder.Core.Dto.Services.IFile;
 
 namespace PhotoFolder.Infrastructure.Photos
 {
+    // we are using internally forward slashes (/) because they don't escape
     public class PhotoDirectory : IPhotoDirectory
     {
         private readonly DbContextOptions<AppDbContext> _dbOptions;
@@ -26,9 +27,9 @@ namespace PhotoFolder.Infrastructure.Photos
             DbContextOptions<AppDbContext> dbOptions)
         {
             _fileSystem = fileSystem;
-            _rootDirectory = rootDirectory;
+            _rootDirectory = rootDirectory.ToForwardSlashes();
 
-            _photoFilenameTemplate = TemplateString.Parse(config.TemplatePath);
+            _photoFilenameTemplate = TemplateString.Parse(config.TemplatePath.ToForwardSlashes());
             _dbOptions = dbOptions;
         }
 
@@ -51,26 +52,36 @@ namespace PhotoFolder.Infrastructure.Photos
         }
 
         public string GetAbsolutePath(FileInformation fileInformation) =>
-            fileInformation.IsRelativeFilename ? _fileSystem.Path.Combine(_rootDirectory, fileInformation.Filename) : fileInformation.Filename;
+            fileInformation.IsRelativeFilename ? _fileSystem.Path.Combine(_rootDirectory, fileInformation.Filename).ToForwardSlashes() : fileInformation.Filename.ToForwardSlashes();
 
-        public string GetFileDirectoryRegexPattern(FileInformation fileInformation)
+        public TemplateString GetFileDirectoryTemplate(FileInformation fileInformation)
         {
             var values = FilePlaceholderFiller.GetPlaceholders(
                 _photoFilenameTemplate.Fragments.OfType<PlaceholderFragment>().Select(x => x.Value), fileInformation);
             var nonNullValues = values.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value!);
 
             var path = _photoFilenameTemplate.ToString(nonNullValues);
-            return TemplateString.Parse(_fileSystem.Path.GetDirectoryName(path)).ToRegexPattern();
+            return TemplateString.Parse(_fileSystem.Path.GetDirectoryName(path).ToForwardSlashes());
         }
 
-        public string GetFilenameRegexPattern(FileInformation fileInformation)
+        public TemplateString GetFilenameTemplate(FileInformation fileInformation)
         {
             var values = FilePlaceholderFiller.GetPlaceholders(
                 _photoFilenameTemplate.Fragments.OfType<PlaceholderFragment>().Select(x => x.Value), fileInformation);
             var nonNullValues = values.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value!);
 
-            var path = _photoFilenameTemplate.ToString(nonNullValues);
-            return TemplateString.Parse(path).ToRegexPattern();
+            var path = _photoFilenameTemplate.ToString(nonNullValues).ToForwardSlashes();
+            return TemplateString.Parse(path);
+        }
+
+        public string ClearPath(string path)
+        {
+            var dirSeparators = new[]
+            {
+                _fileSystem.Path.DirectorySeparatorChar, _fileSystem.Path.AltDirectorySeparatorChar
+            };
+            return PathUtilities.PatchPathParts(path, dirSeparators, PathUtilities.TrimChars(' ', '-'),
+                PathUtilities.RemoveInvalidChars(_fileSystem.Path.GetInvalidFileNameChars())).ToForwardSlashes();
         }
 
         public string GetRecommendedPath(FileInformation fileInformation)
@@ -79,12 +90,7 @@ namespace PhotoFolder.Infrastructure.Photos
                 _photoFilenameTemplate.Fragments.OfType<PlaceholderFragment>().Select(x => x.Value), fileInformation);
             var path = _photoFilenameTemplate.ToString(values.ToDictionary(x => x.Key, x => x.Value ?? string.Empty));
 
-            var dirSeparators = new[]
-            {
-                _fileSystem.Path.DirectorySeparatorChar, _fileSystem.Path.AltDirectorySeparatorChar
-            };
-            return PathUtilities.PatchPathParts(path, dirSeparators, PathUtilities.TrimChars(' ', '-'),
-                PathUtilities.RemoveInvalidChars(_fileSystem.Path.GetInvalidFileNameChars()));
+            return ClearPath(path);
         }
 
         public IPhotoDirectoryDataContext GetDataContext() => new PhotoDirectoryDataContext(GetAppDbContext());

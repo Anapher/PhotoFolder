@@ -13,6 +13,8 @@
     <None Remove="Resources\Styles.xaml" />
     <None Remove="Resources\VisualStudioIcons.xaml" />
     <None Remove="Views\ConfigureFolderDialog.xaml" />
+    <None Remove="Views\DecisionAssistantDialog.xaml" />
+    <None Remove="Views\DecisionInvalidLocationView.xaml" />
     <None Remove="Views\DecisionIssueTextControl.xaml" />
     <None Remove="Views\DecisionManagerDetailsView.xaml" />
     <None Remove="Views\DecisionManagerDialog.xaml" />

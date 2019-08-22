@@ -1,5 +1,6 @@
 ﻿using PhotoFolder.Core.Dto.Services;
 using System.Collections.Generic;
+using PhotoFolder.Core.Domain.Template;
 
 namespace PhotoFolder.Core.Interfaces.Gateways
 {
@@ -10,9 +11,10 @@ namespace PhotoFolder.Core.Interfaces.Gateways
         IEnumerable<IFile> EnumerateFiles();
         IFile? GetFile(string filename);
         string GetAbsolutePath(FileInformation fileInformation);
+        string ClearPath(string path);
 
-        string GetFileDirectoryRegexPattern(FileInformation fileInformation);
-        string GetFilenameRegexPattern(FileInformation fileInformation);
+        TemplateString GetFileDirectoryTemplate(FileInformation fileInformation);
+        TemplateString GetFilenameTemplate(FileInformation fileInformation);
 
         string GetRecommendedPath(FileInformation fileInformation);
 

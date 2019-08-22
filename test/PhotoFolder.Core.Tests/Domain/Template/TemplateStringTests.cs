@@ -1,10 +1,8 @@
-﻿using PhotoFolder.Infrastructure.TemplatePath;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using PhotoFolder.Core.Domain.Template;
 using Xunit;
 
-namespace PhotoFolder.Infrastructure.Tests.TemplatePath
+namespace PhotoFolder.Core.Tests.Domain.Template
 {
     public class TemplateStringTests
     {
@@ -73,7 +71,7 @@ namespace PhotoFolder.Infrastructure.Tests.TemplatePath
             var result = s.ToRegexPattern();
 
             // assert
-            Assert.Equal("^path/to/.+?/file\\.txt$", result);
+            Assert.Equal("^path/to/.*?/file\\.txt$", result);
         }
 
         [Fact]
@@ -87,6 +85,32 @@ namespace PhotoFolder.Infrastructure.Tests.TemplatePath
 
             // assert
             Assert.Equal("^path/to/\\(12\\.23\\.2\\)/file\\.txt$", result);
+        }
+
+        [Fact]
+        public void HasPlaceholdersAfterContextChars_ProduceRegex()
+        {
+            // arrange
+            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/34.10 - "), new PlaceholderFragment("file"),  });
+
+            // act
+            var result = s.ToRegexPattern();
+
+            // assert
+            Assert.Equal("^path/to/34\\.10.*?$", result);
+        }
+
+        [Fact]
+        public void HasTextAfterContextChars_ProduceRegex()
+        {
+            // arrange
+            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/34.10 - "), new TextFragment("/wtf.txt"), });
+
+            // act
+            var result = s.ToRegexPattern();
+
+            // assert
+            Assert.Equal("^path/to/34\\.10\\ -\\ /wtf\\.txt$", result);
         }
     }
 }

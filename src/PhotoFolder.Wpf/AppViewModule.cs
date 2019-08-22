@@ -21,12 +21,15 @@ namespace PhotoFolder.Wpf
             regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerMenu, typeof(DecisionManagerMenuView));
             regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerList, typeof(DecisionManagerListView));
             regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerSelectionDetails, typeof(DecisionManagerDetailsView));
+
+            regionManager.RegisterViewWithRegion(RegionNames.InvalidLocationDecision, typeof(DecisionInvalidLocationView));
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterDialog<ConfigureFolderDialog, ConfigureFolderDialogViewModel>("ConfigureFolder");
             containerRegistry.RegisterDialog<DecisionManagerDialog, DecisionManagerViewModel>("DecisionManager");
+            containerRegistry.RegisterDialog<DecisionAssistantDialog, DecisionAssistantDialogViewModel>("DecisionAssistant");
         }
     }
 }

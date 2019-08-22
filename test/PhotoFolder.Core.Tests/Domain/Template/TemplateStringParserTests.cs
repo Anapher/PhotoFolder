@@ -1,11 +1,11 @@
-﻿using PhotoFolder.Infrastructure.TemplatePath;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using PhotoFolder.Core.Domain.Template;
+using PhotoFolder.Core.Services;
 using Xunit;
 
-namespace PhotoFolder.Infrastructure.Tests.TemplatePath
+namespace PhotoFolder.Core.Tests.Domain.Template
 {
     public class TemplateStringParserTests
     {
@@ -26,7 +26,6 @@ namespace PhotoFolder.Infrastructure.Tests.TemplatePath
                 { "one\\{two{hello}", new ITemplateFragment[] {new TextFragment("one{two"), new PlaceholderFragment("hello")} },
                 { "one{two\\}wtf}", new ITemplateFragment[] {new TextFragment("one"), new PlaceholderFragment("two}wtf")} },
                 { "one{two\\\\}wtf", new ITemplateFragment[] {new TextFragment("one"), new PlaceholderFragment("two\\"), new TextFragment("wtf")} },
-
             };
 
         [Theory]
