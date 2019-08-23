@@ -20,22 +20,32 @@
         <GridLength x:Key="PropertiesLabelWidth">70</GridLength>
     </UserControl.Resources>
     <StackPanel Orientation="Vertical">
-        <Border
-            HorizontalAlignment="Center"
-            BorderBrush="Black"
-            BorderThickness="1">
+        <ContentControl Height="200">
             <Border
                 HorizontalAlignment="Center"
-                BorderBrush="White"
+                VerticalAlignment="Center"
+                BorderBrush="Black"
                 BorderThickness="1">
-                <Image
-                    Height="200"
-                    RenderOptions.BitmapScalingMode="HighQuality"
-                    RenderOptions.EdgeMode="Aliased"
-                    Source="{Binding Thumbnail}"
-                    Stretch="Uniform" />
+                <Border
+                    HorizontalAlignment="Center"
+                    BorderBrush="White"
+                    BorderThickness="1">
+                    <Image
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        RenderOptions.EdgeMode="Aliased"
+                        Source="{Binding Thumbnail}"
+                        Stretch="Uniform">
+                        <Image.InputBindings>
+                            <MouseBinding
+                                Command="{Binding OpenFileCommand}"
+                                CommandParameter="{Binding Selection}"
+                                MouseAction="LeftDoubleClick" />
+                        </Image.InputBindings>
+                    </Image>
+                </Border>
             </Border>
-        </Border>
+        </ContentControl>
+
         <StackPanel Margin="16" Orientation="Vertical">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -171,6 +181,19 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type models:DeleteFileOperation}">
                         <Grid Margin="0,4,0,0">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding File.IsRelativeFilename}" Value="false" />
+                                                <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.DecisionContext.RemoveFilesFromOutside}" Value="false" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />

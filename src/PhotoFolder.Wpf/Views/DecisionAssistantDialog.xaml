@@ -18,6 +18,9 @@
             <DataTemplate DataType="{x:Type models:InvalidLocationFileDecisionViewModel}">
                 <ContentControl mvvm:RegionManager.RegionContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Context}" mvvm:RegionManager.RegionName="{x:Static wpf:RegionNames.InvalidLocationDecision}" />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type models:DuplicateFileDecisionViewModel}">
+                <ContentControl mvvm:RegionManager.RegionContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Context}" mvvm:RegionManager.RegionName="{x:Static wpf:RegionNames.DuplicateFilesDecision}" />
+            </DataTemplate>
         </ContentControl.Resources>
     </ContentControl>
 </UserControl>

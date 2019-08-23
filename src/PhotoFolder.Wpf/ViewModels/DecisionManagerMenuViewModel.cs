@@ -69,6 +69,9 @@ namespace PhotoFolder.Wpf.ViewModels
                 return _applyRemoveActionsCommand ??= new DelegateCommand(() =>
                 {
                     if (DecisionContext == null) return;
+
+                    foreach (var issue in DecisionContext.Issues.Where(x => x.Decision is DuplicateFileDecisionViewModel))
+                        issue.Execute = true;
                 });
             }
         }

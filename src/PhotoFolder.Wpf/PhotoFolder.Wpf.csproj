@@ -14,6 +14,7 @@
     <None Remove="Resources\VisualStudioIcons.xaml" />
     <None Remove="Views\ConfigureFolderDialog.xaml" />
     <None Remove="Views\DecisionAssistantDialog.xaml" />
+    <None Remove="Views\DecisionDuplicateFilesView.xaml" />
     <None Remove="Views\DecisionInvalidLocationView.xaml" />
     <None Remove="Views\DecisionIssueTextControl.xaml" />
     <None Remove="Views\DecisionManagerDetailsView.xaml" />
@@ -21,6 +22,7 @@
     <None Remove="Views\DecisionManagerListView.xaml" />
     <None Remove="Views\DecisionManagerMenuView.xaml" />
     <None Remove="Views\Decision\DecisionOperationView.xaml" />
+    <None Remove="Views\Decision\ImageSelectionView.xaml" />
   </ItemGroup>
 
   <ItemGroup>

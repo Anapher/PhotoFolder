@@ -2,7 +2,6 @@
 using System.Linq;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Wpf.ViewModels.Models;
-using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
 
@@ -10,7 +9,6 @@ namespace PhotoFolder.Wpf.ViewModels
 {
     public class DecisionAssistantDialogViewModel : BindableBase, IDialogAware
     {
-        private DelegateCommand? _applyCommand;
         private DecisionAssistantContext? _context;
         private string _title = string.Empty;
 
@@ -18,12 +16,6 @@ namespace PhotoFolder.Wpf.ViewModels
         {
             get => _context;
             set => SetProperty(ref _context, value);
-        }
-
-        public DelegateCommand? ApplyCommand
-        {
-            get => _applyCommand;
-            set => SetProperty(ref _applyCommand, value);
         }
 
         public bool CanCloseDialog() => true;

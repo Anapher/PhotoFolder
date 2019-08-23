@@ -15,19 +15,20 @@ namespace PhotoFolder.Wpf.ViewModels
     public class DecisionInvalidLocationViewModel : BindableBase
     {
         private readonly IPathUtils _pathUtils;
-        private InvalidLocationFileDecisionViewModel? _decision;
-        private IssueDecisionWrapperViewModel? _decisionWrapper;
-        private InvalidFileLocationIssue? _issue;
-        private FilenameSuggestion? _selectedSuggestion;
-        private IList<KeyValueViewModel>? _pathVariables;
+        private DelegateCommand? _applyCommand;
         private string? _customPath;
-        private TemplateString? _filePathTemplate;
+        private InvalidLocationFileDecisionViewModel? _decision;
+        private DecisionScope _decisionScope;
+        private IssueDecisionWrapperViewModel? _decisionWrapper;
         private string? _filePathRegex;
+        private TemplateString? _filePathTemplate;
+        private bool _isNewPathValid;
+        private InvalidFileLocationIssue? _issue;
         private string? _newPath;
         private PathConfigurator _pathConfigurator;
-        private bool _isNewPathValid;
-        private DelegateCommand? _applyCommand;
-        private DecisionScope _decisionScope;
+        private IList<KeyValueViewModel>? _pathVariables;
+        private FilenameSuggestion? _selectedSuggestion;
+        private IReadOnlyList<FilenameSuggestion>? _suggestions;
 
         public DecisionInvalidLocationViewModel(IPathUtils pathUtils)
         {
@@ -130,8 +131,6 @@ namespace PhotoFolder.Wpf.ViewModels
             set => SetProperty(ref _decisionScope, value);
         }
 
-        private IReadOnlyList<FilenameSuggestion>? _suggestions;
-
         public IReadOnlyList<FilenameSuggestion>? Suggestions
         {
             get => _suggestions;
@@ -225,7 +224,9 @@ namespace PhotoFolder.Wpf.ViewModels
                     {
                         if (issue.DirectoryPathTemplate.ToString() != Issue.DirectoryPathTemplate.ToString()) return;
 
-                        viewModel.TargetPath = issue.File == Issue.File ? NewPath : _pathUtils.Combine(_pathUtils.GetDirectoryName(NewPath), issue.CorrectFilename);
+                        viewModel.TargetPath = issue.File == Issue.File
+                            ? NewPath
+                            : _pathUtils.Combine(_pathUtils.GetDirectoryName(NewPath), issue.CorrectFilename);
                     }
                 }));
             }).ObservesCanExecute(() => IsNewPathValid);
