@@ -67,11 +67,9 @@
                 <TextBlock Grid.Column="1">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="No" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Selection.Decision.Issue.File.IsRelativeFilename}" Value="true">
-                                    <Setter Property="Text" Value="No" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Selection.Decision.Issue.File.IsRelativeFilename}" Value="false">
+                                <DataTrigger Binding="{Binding Selection.Decision.Issue.File.RelativeFilename}" Value="{x:Null}">
                                     <Setter Property="Text" Value="Yes" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -160,7 +158,7 @@
                                         <Style.Triggers>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding File.IsRelativeFilename}" Value="false" />
+                                                    <Condition Binding="{Binding File.RelativeFilename}" Value="{x:Null}" />
                                                     <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.DecisionContext.RemoveFilesFromOutside}" Value="false" />
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Content" Value="{StaticResource CopyIcon}" />
@@ -186,7 +184,7 @@
                                     <Style.Triggers>
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding File.IsRelativeFilename}" Value="false" />
+                                                <Condition Binding="{Binding File.RelativeFilename}" Value="{x:Null}" />
                                                 <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.DecisionContext.RemoveFilesFromOutside}" Value="false" />
                                             </MultiDataTrigger.Conditions>
                                             <Setter Property="Visibility" Value="Collapsed" />

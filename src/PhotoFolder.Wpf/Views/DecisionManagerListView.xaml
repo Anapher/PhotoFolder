@@ -72,7 +72,7 @@
                 <DataGridTextColumn.CellStyle>
                     <Style BasedOn="{StaticResource MahApps.Styles.DataGridCell}" TargetType="DataGridCell">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Decision.Issue.File.IsRelativeFilename}" Value="false">
+                            <DataTrigger Binding="{Binding Decision.Issue.File.RelativeFilename}" Value="{x:Null}">
                                 <Setter Property="Foreground" Value="#2980b9" />
                             </DataTrigger>
                             <Trigger Property="IsSelected" Value="True">

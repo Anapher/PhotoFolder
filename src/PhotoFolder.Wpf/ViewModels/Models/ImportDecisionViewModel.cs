@@ -143,7 +143,7 @@ namespace PhotoFolder.Wpf.ViewModels.Models
         public bool UpdateDeletedFiles(IReadOnlyList<FileInformation> deletedFiles)
         {
             Files = GetFilesView(deletedFiles);
-            return deletedFiles.All(x => Issue.File.Filename == x.Filename) && Files.Any();
+            return (!IssueFileCheckable.IsChecked || deletedFiles.All(x => Issue.File.Filename != x.Filename)) && Files.Any();
         }
 
         private IReadOnlyList<IFileOperation> GetOperations()

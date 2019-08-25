@@ -12,6 +12,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:DeleteFilesDecisionCountConverter x:Key="DeleteFilesDecisionCountConverter" />
+        <converters:IsStringEmptyConverter x:Key="IsStringEmptyConverter" />
     </UserControl.Resources>
     <ContentControl Content="{Binding ElementName=Root, Path=DecisionViewModel}">
         <ContentControl.Resources>
@@ -62,7 +63,7 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding Issue.File.IsRelativeFilename}" Value="false" />
+                                        <Condition Binding="{Binding Issue.File.RelativeFilename}" Value="{x:Null}" />
                                         <Condition Binding="{Binding ElementName=Root, Path=RemoveFilesFromOutside}" Value="true" />
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="ContentTemplate" Value="{StaticResource MoveFileTemplate}" />
@@ -70,13 +71,13 @@
 
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding Issue.File.IsRelativeFilename}" Value="false" />
+                                        <Condition Binding="{Binding Issue.File.RelativeFilename}" Value="{x:Null}" />
                                         <Condition Binding="{Binding ElementName=Root, Path=RemoveFilesFromOutside}" Value="false" />
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="ContentTemplate" Value="{StaticResource CopyFileTemplate}" />
                                 </MultiDataTrigger>
 
-                                <DataTrigger Binding="{Binding Issue.File.IsRelativeFilename}" Value="true">
+                                <DataTrigger Binding="{Binding Issue.File.RelativeFilename, Converter={StaticResource IsStringEmptyConverter}}" Value="false">
                                     <Setter Property="ContentTemplate" Value="{StaticResource MoveFileTemplate}" />
                                 </DataTrigger>
                             </Style.Triggers>
