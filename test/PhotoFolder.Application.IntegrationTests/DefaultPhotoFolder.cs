@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.EntityFrameworkCore;
@@ -35,13 +34,12 @@ namespace PhotoFolder.Application.IntegrationTests
         /// </summary>
         /// <param name="files">The files that should exist in the photo folder. Key should be the path (relative) and the value the file name of the resource</param>
         /// <returns></returns>
-        public static async Task<AppContext> Initialize(IReadOnlyDictionary<string, string> files)
+        public static async Task<ApplicationContext> Initialize(IReadOnlyDictionary<string, string> files)
         {
-            var app = AppContext.Initialize();
+            var app = ApplicationContext.Initialize();
 
             foreach (var file in files)
-                app.MockFileSystem.AddFileFromEmbeddedResource(Path.Combine(PhotoFolderPath, file.Key), Assembly.GetExecutingAssembly(),
-                    $"PhotoFolder.Application.IntegrationTests.Resources.{file.Value}");
+                app.AddResourceFile(Path.Combine(PhotoFolderPath, file.Key), file.Value);
 
             var creator = app.Container.Resolve<IPhotoDirectoryCreator>();
             await creator.Create(PhotoFolderPath, new PhotoDirectoryConfig("{date:yyyy}/{date:MM.dd} - {eventName}/{filename}"));

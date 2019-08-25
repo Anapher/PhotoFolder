@@ -23,8 +23,7 @@ namespace PhotoFolder.Application.Workers
 
         public ImportFilesState State { get; } = new ImportFilesState();
 
-        public async Task<FileCheckReport> Execute(ImportFilesRequest request,
-            CancellationToken cancellationToken = default)
+        public async Task<FileCheckReport> Execute(ImportFilesRequest request, CancellationToken cancellationToken = default)
         {
             State.Status = ImportFilesStatus.Scanning;
 

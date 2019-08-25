@@ -11,7 +11,7 @@ namespace PhotoFolder.Infrastructure.Photos
         private static readonly IReadOnlyDictionary<string, Func<FileInformation, string, string?>> PlaceholderMap
             = new Dictionary<string, Func<FileInformation, string, string?>> {
                 { "hash", (x, param) => FormatString(x.Hash.ToString(), param) },
-                { "filename", (x, param) => FormatString(Path.GetFileName(x.RelativeFilename), param)},
+                { "filename", (x, param) => FormatString(Path.GetFileName(x.Filename), param)},
                 { "width", (x, _) => x.PhotoProperties?.Width.ToString() ?? string.Empty },
                 { "height", (x, _) => x.PhotoProperties?.Height.ToString() ?? string.Empty },
                 { "date", (x, param) => FormatDateTimeOffset(x.FileCreatedOn, param) }

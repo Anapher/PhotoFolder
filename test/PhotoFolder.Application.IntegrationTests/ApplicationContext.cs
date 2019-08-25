@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
@@ -14,9 +15,9 @@ using PhotoFolder.Infrastructure.Photos;
 
 namespace PhotoFolder.Application.IntegrationTests
 {
-    public class AppContext
+    public class ApplicationContext
     {
-        public AppContext(IContainer container, SqliteConnection sqliteConnection, MockFileSystem mockFileSystem)
+        public ApplicationContext(IContainer container, SqliteConnection sqliteConnection, MockFileSystem mockFileSystem)
         {
             Container = container;
             SqliteConnection = sqliteConnection;
@@ -27,7 +28,13 @@ namespace PhotoFolder.Application.IntegrationTests
         public SqliteConnection SqliteConnection { get; }
         public MockFileSystem MockFileSystem { get; }
 
-        public static AppContext Initialize()
+        public void AddResourceFile(string path, string resourceName)
+        {
+            MockFileSystem.AddFileFromEmbeddedResource(path, Assembly.GetExecutingAssembly(),
+                $"PhotoFolder.Application.IntegrationTests.Resources.{resourceName}");
+        }
+
+        public static ApplicationContext Initialize()
         {
             var fileSystem = new MockFileSystem();
 
@@ -55,7 +62,7 @@ namespace PhotoFolder.Application.IntegrationTests
 
             builder.RegisterType<AutofacServiceProvider>().AsImplementedInterfaces();
 
-            return new AppContext(builder.Build(), connection, fileSystem);
+            return new ApplicationContext(builder.Build(), connection, fileSystem);
         }
     }
 }

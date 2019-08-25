@@ -78,7 +78,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         }
 
         [Fact]
-        public async Task<AppContext> TestFileMoved()
+        public async Task<ApplicationContext> TestFileMoved()
         {
             var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.DefaultFileBase);
             var photoFolderPath = DefaultPhotoFolder.PhotoFolderPath;
