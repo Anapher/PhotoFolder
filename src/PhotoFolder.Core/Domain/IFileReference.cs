@@ -3,6 +3,6 @@
     public interface IFileReference
     {
         string Hash { get; }
-        string Filename { get; }
+        string RelativeFilename { get; }
     }
 }

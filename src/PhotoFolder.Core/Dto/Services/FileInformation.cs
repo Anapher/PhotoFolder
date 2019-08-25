@@ -3,20 +3,23 @@ using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Core.Dto.Services
 {
-    public class FileInformation : FileReference, IFileInfo, IFileContentInfo
+    public class FileInformation : IFileInfo, IFileContentInfo
     {
         public FileInformation(string filename, DateTimeOffset createdOn, DateTimeOffset modifiedOn, Hash hash,
-                               long length, DateTimeOffset fileCreatedOn, PhotoProperties? photoProperties, bool isRelativeFilename)
+                               long length, DateTimeOffset fileCreatedOn, PhotoProperties? photoProperties, string? relativeFilename)
         {
             Filename = filename;
             CreatedOn = createdOn;
             ModifiedOn = modifiedOn;
-            Hash = hash.ToString();
+            Hash = hash;
             Length = length;
             FileCreatedOn = fileCreatedOn;
             PhotoProperties = photoProperties;
-            IsRelativeFilename = isRelativeFilename;
+            RelativeFilename = relativeFilename;
         }
+
+        public string Filename { get; }
+        public string? RelativeFilename { get; set; }
 
         public DateTimeOffset CreatedOn { get; }
         public DateTimeOffset ModifiedOn { get; }
@@ -26,8 +29,6 @@ namespace PhotoFolder.Core.Dto.Services
 
         public PhotoProperties? PhotoProperties { get; }
 
-        Hash IFileContentInfo.Hash => Domain.Hash.Parse(Hash);
-
-        public bool IsRelativeFilename { get; }
+        public Hash Hash { get; }
     }
 }

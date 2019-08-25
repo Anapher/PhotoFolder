@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using Prism.Mvvm;

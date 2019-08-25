@@ -18,7 +18,7 @@ namespace PhotoFolder.Infrastructure.Migrations
 
             modelBuilder.Entity("PhotoFolder.Core.Domain.Entities.FileLocation", b =>
                 {
-                    b.Property<string>("Filename")
+                    b.Property<string>("RelativeFilename")
                         .ValueGeneratedOnAdd();
 
                     b.Property<DateTimeOffset>("CreatedOn");
@@ -27,7 +27,7 @@ namespace PhotoFolder.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("ModifiedOn");
 
-                    b.HasKey("Filename");
+                    b.HasKey("RelativeFilename");
 
                     b.HasIndex("Hash");
 

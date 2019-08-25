@@ -3,52 +3,29 @@ using PhotoFolder.Core.Dto.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PhotoFolder.Core.Domain;
+using PhotoFolder.Core.Interfaces.Gateways;
 
 namespace PhotoFolder.Core.Utilities
 {
     public static class FileEntityTransformations
     {
-        public static FileInformation ToFileInformation(this IndexedFile file, string filename)
+        public static FileInformation ToFileInformation(this IndexedFile file, string relativeFilename, IPhotoDirectory photoDirectory)
         {
-            var fileLocation = file.GetFileByFilename(filename);
+            var fileLocation = file.GetFileByFilename(relativeFilename);
             if (fileLocation == null)
-                throw new ArgumentException($"The indexed file is not located at {filename}");
+                throw new ArgumentException($"The indexed file is not located at {relativeFilename}");
 
-            return new FileInformation(
-                filename, fileLocation.CreatedOn, fileLocation.ModifiedOn, Hash.Parse(file.Hash), file.Length, file.CreatedOn, file.PhotoProperties, true);
+            return photoDirectory.ToFileInformation(file, fileLocation);
         }
 
-        public static FileInformation ToFileInformation(this IndexedFile file)
+        public static FileInformation ToFileInformation(this IndexedFile file, IPhotoDirectory photoDirectory)
         {
-            var fileLocation = file.Files.First();
-
-            return new FileInformation(
-                fileLocation.Filename, fileLocation.CreatedOn, fileLocation.ModifiedOn, Hash.Parse(file.Hash), file.Length, file.CreatedOn, file.PhotoProperties, true);
+            return photoDirectory.ToFileInformation(file, file.Files.First());
         }
 
-        public static IEnumerable<IFileInfo> ToFileInfos(this IndexedFile file)
+        public static IEnumerable<IFileInfo> ToFileInfos(this IndexedFile file, IPhotoDirectory photoDirectory)
         {
-            return file.Files.Select(x => new BasicFileInfo(x.Filename, file.Length, x.CreatedOn, x.ModifiedOn, true));
+            return file.Files.Select(x => photoDirectory.ToFileInformation(file, x));
         }
-    }
-
-    public class BasicFileInfo : IFileInfo
-    {
-        public BasicFileInfo(string filename, long length, DateTimeOffset createdOn, DateTimeOffset modifiedOn, bool isRelativeFilename)
-        {
-            Filename = filename;
-            Length = length;
-            CreatedOn = createdOn;
-            ModifiedOn = modifiedOn;
-            IsRelativeFilename = IsRelativeFilename;
-        }
-
-        public string Filename { get; }
-        public long Length { get; }
-        public bool IsRelativeFilename { get; }
-
-        public DateTimeOffset CreatedOn { get; }
-        public DateTimeOffset ModifiedOn { get; }
     }
 }

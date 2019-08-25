@@ -1,14 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.IO.Abstractions;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Infrastructure.Consts;
 using PhotoFolder.Infrastructure.Data;
 using PhotoFolder.Infrastructure.Photos;
 using PhotoFolder.Infrastructure.Serialization;
-using System;
-using System.IO;
-using System.IO.Abstractions;
-using System.Threading.Tasks;
 
 namespace PhotoFolder.Infrastructure.Services
 {
@@ -19,13 +19,13 @@ namespace PhotoFolder.Infrastructure.Services
 
     public class PhotoDirectoryLoader : IPhotoDirectoryLoader
     {
+        private readonly IAppDbContextOptionsBuilder _contextBuilder;
         private readonly IFileSystem _fileSystem;
         private readonly IDataSerializer _serializer;
         private readonly WorkspaceOptions _workspaceOptions;
-        private readonly IAppDbContextOptionsBuilder _contextBuilder;
 
-        public PhotoDirectoryLoader(IFileSystem fileSystem, IDataSerializer serializer,
-            IAppDbContextOptionsBuilder contextBuilder, IOptions<WorkspaceOptions> workspaceOptions)
+        public PhotoDirectoryLoader(IFileSystem fileSystem, IDataSerializer serializer, IAppDbContextOptionsBuilder contextBuilder,
+            IOptions<WorkspaceOptions> workspaceOptions)
         {
             _fileSystem = fileSystem;
             _serializer = serializer;
@@ -38,10 +38,7 @@ namespace PhotoFolder.Infrastructure.Services
             var configFilename = _fileSystem.Path.Combine(path, PhotoFolderConsts.ConfigFileName);
             var configFile = _fileSystem.FileInfo.FromFileName(configFilename);
 
-            if (!configFile.Exists)
-            {
-                throw new FileNotFoundException("The photo directory config was not found.", configFilename);
-            }
+            if (!configFile.Exists) throw new FileNotFoundException("The photo directory config was not found.", configFilename);
 
             var configContent = await _fileSystem.File.ReadAllTextAsync(configFilename);
             var config = _serializer.Deserialize<PhotoDirectoryConfig>(configContent);
@@ -51,8 +48,10 @@ namespace PhotoFolder.Infrastructure.Services
             databaseFile.Directory.Create();
 
             var contextOptions = _contextBuilder.Build(databaseFile.FullName);
-            using (var context = new AppDbContext(contextOptions))
+
+            if (_workspaceOptions.ApplyMigrations)
             {
+                using var context = new AppDbContext(contextOptions);
                 await context.Database.MigrateAsync();
             }
 

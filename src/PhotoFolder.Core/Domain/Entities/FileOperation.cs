@@ -6,10 +6,10 @@ namespace PhotoFolder.Core.Domain.Entities
     {
         private FileOperation(IFileReference targetFile, IFileReference? sourceFile, FileOperationType type)
         {
-            TargetFilename = targetFile.Filename;
+            TargetFilename = targetFile.RelativeFilename;
             TargetHash = targetFile.Hash;
 
-            SourceFilename = sourceFile?.Filename;
+            SourceFilename = sourceFile?.RelativeFilename;
             SourceHash = sourceFile?.Hash;
             Type = type;
         }
@@ -26,12 +26,9 @@ namespace PhotoFolder.Core.Domain.Entities
         public string? SourceFilename { get; private set; }
         public string? SourceHash { get; private set; }
 
-        public FileReference TargetFile
-        {
-            get => new FileReference(TargetHash, TargetFilename);
-        }
+        public FileReference TargetFile => new FileReference(TargetHash, TargetFilename);
 
-        public FileReference? SourceFile { get => SourceFilename == null ? null : new FileReference(SourceHash!, SourceFilename); }
+        public FileReference? SourceFile => SourceFilename == null ? null : new FileReference(SourceHash!, SourceFilename);
 
         public FileOperationType Type { get; private set; }
 

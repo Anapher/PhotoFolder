@@ -14,7 +14,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
             var placeholders = new[] {"date:yyyy", "eventName", "hash"};
             var creationDate = DateTimeOffset.Parse("01.07.1999 00:00");
             var fileInfo = new FileInformation("hello.txt", creationDate, creationDate, Hash.Parse("AAFF"), 123,
-                creationDate, null);
+                creationDate, null, null);
 
             var result = FilePlaceholderFiller.GetPlaceholders(placeholders, fileInfo);
 

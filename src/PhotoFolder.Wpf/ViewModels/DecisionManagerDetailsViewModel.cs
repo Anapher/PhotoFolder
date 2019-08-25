@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using PhotoFolder.Wpf.Utilities;
 using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -42,7 +42,7 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (_decisionContext == null) throw new InvalidOperationException();
 
-                    var absolutePath = _decisionContext.PhotoDirectory.GetAbsolutePath(parameter.Decision.Issue.File);
+                    var absolutePath = parameter.Decision.Issue.File.Filename;
                     Process.Start(new ProcessStartInfo(absolutePath) { UseShellExecute = true });
                 });
             }
@@ -74,27 +74,12 @@ namespace PhotoFolder.Wpf.ViewModels
             {
                 if (DecisionContext == null) return;
 
-                var absolutePath = DecisionContext.PhotoDirectory.GetAbsolutePath(viewModel.Decision.Issue.File);
-                var image = await LoadImageAsync(absolutePath);
+                var absolutePath = viewModel.Decision.Issue.File.Filename;
+                var image = await ImageUtils.LoadImageAsync(absolutePath);
 
                 if (Selection == viewModel)
                     Thumbnail = image;
             }
-        }
-
-        private static Task<BitmapImage> LoadImageAsync(string filename)
-        {
-            return Task.Run(() =>
-            {
-                var img = new BitmapImage();
-                img.BeginInit();
-                img.CacheOption = BitmapCacheOption.OnLoad;
-                img.UriSource = new Uri(filename);
-                img.EndInit();
-                img.Freeze();
-
-                return img;
-            });
         }
     }
 }

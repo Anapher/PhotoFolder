@@ -43,7 +43,7 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (_decisionContext == null) throw new InvalidOperationException();
 
-                    var absolutePath = _decisionContext.PhotoDirectory.GetAbsolutePath(parameter.Decision.Issue.File);
+                    var absolutePath = parameter.Decision.Issue.File.Filename;
                     Process.Start(new ProcessStartInfo(absolutePath) {UseShellExecute = true});
                 });
             }
@@ -57,7 +57,7 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (_decisionContext == null) throw new InvalidOperationException();
 
-                    var absolutePath = _decisionContext.PhotoDirectory.GetAbsolutePath(parameter.Decision.Issue.File);
+                    var absolutePath = parameter.Decision.Issue.File.Filename.Replace('/', '\\');
                     Process.Start("explorer.exe", $"/select, \"{absolutePath}\"");
                 });
             }

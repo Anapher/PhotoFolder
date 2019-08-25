@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Autofac;
 using Microsoft.Extensions.Options;
 using PhotoFolder.Application;
 using PhotoFolder.Core;
 using PhotoFolder.Infrastructure;
 using PhotoFolder.Infrastructure.Photos;
-using PhotoFolder.Infrastructure.Services;
 using PhotoFolder.Wpf.Extensions;
 using PhotoFolder.Wpf.Services;
 using Prism.Ioc;
@@ -35,7 +34,6 @@ namespace PhotoFolder.Wpf
             builder.RegisterModule<CoreModule>();
             builder.RegisterModule<InfrastructureModule>();
             builder.RegisterModule<ApplicationModule>();
-            builder.RegisterType<FileSystem>().As<IFileSystem>();
 
             builder.RegisterInstance(Options.Create(new WorkspaceOptions())).As<IOptions<WorkspaceOptions>>();
             builder.RegisterInstance(Options.Create(new BitmapHashOptions())).As<IOptions<BitmapHashOptions>>();

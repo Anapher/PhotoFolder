@@ -9,23 +9,6 @@
   <Import Project="../nullable.props" />
 
   <ItemGroup>
-    <None Remove="Resources\Colors.xaml" />
-    <None Remove="Resources\Styles.xaml" />
-    <None Remove="Resources\VisualStudioIcons.xaml" />
-    <None Remove="Views\ConfigureFolderDialog.xaml" />
-    <None Remove="Views\DecisionAssistantDialog.xaml" />
-    <None Remove="Views\DecisionDuplicateFilesView.xaml" />
-    <None Remove="Views\DecisionInvalidLocationView.xaml" />
-    <None Remove="Views\DecisionIssueTextControl.xaml" />
-    <None Remove="Views\DecisionManagerDetailsView.xaml" />
-    <None Remove="Views\DecisionManagerDialog.xaml" />
-    <None Remove="Views\DecisionManagerListView.xaml" />
-    <None Remove="Views\DecisionManagerMenuView.xaml" />
-    <None Remove="Views\Decision\DecisionOperationView.xaml" />
-    <None Remove="Views\Decision\ImageSelectionView.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0455" />
     <PackageReference Include="Prism.DryIoc" Version="7.2.0.1367" />
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1367" />

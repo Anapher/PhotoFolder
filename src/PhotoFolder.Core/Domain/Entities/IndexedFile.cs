@@ -42,20 +42,20 @@ namespace PhotoFolder.Core.Domain.Entities
 
         public void AddLocation(FileLocation location)
         {
-            if (Files.Any(x => x.Filename == location.Filename))
-                throw new ArgumentException("The file is already added.", nameof(location.Filename));
+            if (Files.Any(x => x.RelativeFilename == location.RelativeFilename))
+                throw new ArgumentException("The file is already added.", nameof(location.RelativeFilename));
 
             _files.Add(location);
         }
 
         public FileLocation? GetFileByFilename(string filename)
         {
-            return Files.FirstOrDefault(x => x.Filename == filename);
+            return Files.FirstOrDefault(x => x.RelativeFilename == filename);
         }
 
         public void RemoveLocation(string filename)
         {
-            var fileLocation = _files.FirstOrDefault(x => x.Filename == filename);
+            var fileLocation = _files.FirstOrDefault(x => x.RelativeFilename == filename);
             if (fileLocation != null)
                 _files.Remove(fileLocation);
             else

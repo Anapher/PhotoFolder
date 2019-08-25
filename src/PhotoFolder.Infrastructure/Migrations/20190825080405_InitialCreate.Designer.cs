@@ -9,7 +9,7 @@ using PhotoFolder.Infrastructure.Data;
 namespace PhotoFolder.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20190801190345_InitialCreate")]
+    [Migration("20190825080405_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,7 +20,7 @@ namespace PhotoFolder.Infrastructure.Migrations
 
             modelBuilder.Entity("PhotoFolder.Core.Domain.Entities.FileLocation", b =>
                 {
-                    b.Property<string>("Filename")
+                    b.Property<string>("RelativeFilename")
                         .ValueGeneratedOnAdd();
 
                     b.Property<DateTimeOffset>("CreatedOn");
@@ -29,7 +29,7 @@ namespace PhotoFolder.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("ModifiedOn");
 
-                    b.HasKey("Filename");
+                    b.HasKey("RelativeFilename");
 
                     b.HasIndex("Hash");
 

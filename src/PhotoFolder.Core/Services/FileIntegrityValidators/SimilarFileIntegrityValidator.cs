@@ -7,6 +7,7 @@ using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Utilities;
 using System.Collections.Generic;
 using System.Linq;
+using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Core.Services.FileIntegrityValidators
 {
@@ -30,13 +31,13 @@ namespace PhotoFolder.Core.Services.FileIntegrityValidators
                 foreach (var indexedFile in indexedFiles)
                 {
                     if (indexedFile.PhotoProperties == null) continue;
-                    if (indexedFile.Hash == file.Hash) continue; // can't be similar if it's equal
+                    if (Hash.Parse(indexedFile.Hash).Equals(file.Hash)) continue; // can't be similar if it's equal
 
                     var result = _bitmapHashComparer.Compare(indexedFile.PhotoProperties.BitmapHash,
                         file.PhotoProperties.BitmapHash);
 
                     if (result > SimilarityThreshold)
-                        similarFiles.Add(new SimilarFile(indexedFile.ToFileInformation(), result));
+                        similarFiles.Add(new SimilarFile(indexedFile.ToFileInformation(photoDirectory), result));
                 }
 
                 if (similarFiles.Any())

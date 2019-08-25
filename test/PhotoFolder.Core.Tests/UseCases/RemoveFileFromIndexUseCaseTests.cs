@@ -97,9 +97,25 @@ namespace PhotoFolder.Core.Tests.UseCases
 
             // assert
             Assert.False(useCase.HasError);
-            mockFileRepository.Verify(x => x.Update(It.IsAny<IndexedFile>()), Times.Once);
+            mockFileRepository.Verify(x => x.RemoveFileLocation(It.IsAny<FileLocation>()), Times.Once);
+            mockFileRepository.Verify(x => x.Delete(It.IsAny<IndexedFile>()), Times.Never);
+
             var keptIndexedFile = Assert.Single(indexedFile.Files);
-            Assert.Equal("test2.xml", keptIndexedFile.Filename);
+            Assert.Equal("test2.xml", keptIndexedFile.RelativeFilename);
+        }
+
+        [Fact]
+        public async Task CantRemoveAbsolutePath()
+        {
+            // arrange
+            var useCase = new RemoveFileFromIndexUseCase();
+            var request = new RemoveFileFromIndexRequest("C:\\photos\\test.jpg", null);
+
+            // act
+            await useCase.Handle(request);
+
+            // assert
+            ErrorUtils.AssertError(useCase, ErrorType.InvalidOperation, ErrorCode.PathFullyQualified);
         }
     }
 }

@@ -5,6 +5,8 @@ namespace PhotoFolder.Core.Errors
         FieldValidation = 0,
         FileNotFound,
         FileAlreadyIndexed,
-        FileNotIndexed
+        FileNotIndexed,
+        FileNotInPhotoDirectory,
+        PathFullyQualified
     }
 }

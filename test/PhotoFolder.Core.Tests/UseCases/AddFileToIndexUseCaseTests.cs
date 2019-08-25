@@ -33,7 +33,7 @@ namespace PhotoFolder.Core.Tests.UseCases
         private static Mock<IFileInformationLoader> GetFileLoader(FileInformation returnValue = null)
         {
             if (returnValue == null)
-                returnValue = new FileInformation("test.xml", default, default, Hash.Parse("ABBA"), 324, default, null, true);
+                returnValue = new FileInformation("test.xml", default, default, Hash.Parse("ABBA"), 324, default, null, null);
 
             var mock = new Mock<IFileInformationLoader>();
             mock.Setup(x => x.Load(It.IsAny<IFile>())).ReturnsAsync(returnValue);
@@ -86,12 +86,16 @@ namespace PhotoFolder.Core.Tests.UseCases
             var mockFile = new Mock<IFile>();
             var mockFileRepository = GetDataContext(out _, _testFileInformation);
 
-            mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
+            const string filename = @"C:\photos\2019\test.jpg";
+
+            mockFile.SetupGet(x => x.Filename).Returns(filename);
+            mockFile.SetupGet(x => x.RelativeFilename).Returns("2019\\test.jpg");
+
             mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(mockFile.Object);
             mockDirectory.Setup(x => x.GetDataContext()).Returns(mockFileRepository);
 
             var useCase = new AddFileToIndexUseCase(GetFileLoader().Object, _fileHasher);
-            var request = new AddFileToIndexRequest("test.xml", mockDirectory.Object);
+            var request = new AddFileToIndexRequest(filename, mockDirectory.Object);
 
             // act
             await useCase.Handle(request);
@@ -101,7 +105,7 @@ namespace PhotoFolder.Core.Tests.UseCases
         }
 
         [Fact]
-        public async Task CantAddFileThatWasRemoved()
+        public async Task CantAddFileThatIsDeletedFromDiskWhileOperationIsRunning()
         {
             // arrange
             var mockDirectory = new Mock<IPhotoDirectory>();
@@ -111,14 +115,18 @@ namespace PhotoFolder.Core.Tests.UseCases
 
             var calls = 0;
 
-            mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
-            mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(() => calls++ == 0 ? mockFile.Object : null);
+            const string filename = @"C:\photos\2019\test.jpg";
+
+            mockFile.SetupGet(x => x.Filename).Returns(filename);
+            mockFile.SetupGet(x => x.RelativeFilename).Returns("2019\\test.jpg");
+
+            mockDirectory.Setup(x => x.GetFile(filename)).Returns(() => calls++ == 0 ? mockFile.Object : null);
             mockDirectory.Setup(x => x.GetDataContext()).Returns(mockFileRepository);
             mockFileInformationLoader.Setup(x => x.Load(It.IsAny<IFile>()))
                 .ThrowsAsync(new FileNotFoundException());
 
             var useCase = new AddFileToIndexUseCase(mockFileInformationLoader.Object, _fileHasher);
-            var request = new AddFileToIndexRequest("test.xml", mockDirectory.Object);
+            var request = new AddFileToIndexRequest(filename, mockDirectory.Object);
 
             // act
             await useCase.Handle(request);
@@ -135,12 +143,15 @@ namespace PhotoFolder.Core.Tests.UseCases
             var mockFile = new Mock<IFile>();
             var dataContext = GetDataContext(out var mockFileRepo);
 
-            mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
-            mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(mockFile.Object);
+            const string filename = @"C:\photos\2019\test.jpg";
+
+            mockFile.SetupGet(x => x.Filename).Returns(filename);
+            mockFile.SetupGet(x => x.RelativeFilename).Returns("2019\\test.jpg");
+            mockDirectory.Setup(x => x.GetFile(filename)).Returns(mockFile.Object);
             mockDirectory.Setup(x => x.GetDataContext()).Returns(dataContext);
 
             var useCase = new AddFileToIndexUseCase(GetFileLoader().Object, _fileHasher);
-            var request = new AddFileToIndexRequest("test.xml", mockDirectory.Object);
+            var request = new AddFileToIndexRequest(filename, mockDirectory.Object);
 
             // act
             await useCase.Handle(request);
@@ -148,6 +159,31 @@ namespace PhotoFolder.Core.Tests.UseCases
             // assert
             Assert.False(useCase.HasError);
             mockFileRepo.Verify(x => x.Add(It.Is<IndexedFile>(y => y.Files.Count() == 1)), Times.Once);
+        }
+
+        [Fact]
+        public async Task CantAddNewFileThatIsntInPhotoDirectory()
+        {
+            // arrange
+            var mockDirectory = new Mock<IPhotoDirectory>();
+            var mockFile = new Mock<IFile>();
+            var dataContext = GetDataContext(out var mockFileRepo);
+
+            const string filename = @"C:\photos\2019\test.jpg";
+
+            mockFile.SetupGet(x => x.Filename).Returns(filename);
+            mockFile.SetupGet(x => x.RelativeFilename).Returns((string) null);
+            mockDirectory.Setup(x => x.GetFile(filename)).Returns(mockFile.Object);
+            mockDirectory.Setup(x => x.GetDataContext()).Returns(dataContext);
+
+            var useCase = new AddFileToIndexUseCase(GetFileLoader().Object, _fileHasher);
+            var request = new AddFileToIndexRequest(filename, mockDirectory.Object);
+
+            // act
+            await useCase.Handle(request);
+
+            // assert
+            Assert.True(useCase.HasError);
         }
 
         [Fact]
@@ -159,12 +195,15 @@ namespace PhotoFolder.Core.Tests.UseCases
             var dataContext = GetDataContext(out var mockFileRepo, null, _testFileInformation);
             var mockFileLoader = GetFileLoader();
 
-            mockFile.SetupGet(x => x.Filename).Returns("test.jpg");
+            const string filename = @"C:\photos\2019\test.jpg";
+
+            mockFile.SetupGet(x => x.Filename).Returns(filename);
+            mockFile.SetupGet(x => x.RelativeFilename).Returns("2019\\test.jpg");
             mockDirectory.Setup(x => x.GetFile(It.IsAny<string>())).Returns(mockFile.Object);
             mockDirectory.Setup(x => x.GetDataContext()).Returns(dataContext);
 
             var useCase = new AddFileToIndexUseCase(mockFileLoader.Object, _fileHasher);
-            var request = new AddFileToIndexRequest("test.xml", mockDirectory.Object);
+            var request = new AddFileToIndexRequest(filename, mockDirectory.Object);
 
             // act
             await useCase.Handle(request);

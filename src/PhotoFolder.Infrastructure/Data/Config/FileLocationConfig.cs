@@ -8,8 +8,8 @@ namespace PhotoFolder.Infrastructure.Data.Config
     {
         public void Configure(EntityTypeBuilder<FileLocation> builder)
         {
-            builder.HasKey(x => x.Filename);
-            builder.Property(x => x.Filename).IsRequired();
+            builder.HasKey(x => x.RelativeFilename);
+            builder.Property(x => x.RelativeFilename).IsRequired();
         }
     }
 }

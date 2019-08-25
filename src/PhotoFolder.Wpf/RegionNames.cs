@@ -9,5 +9,6 @@
         public const string DecisionManagerSelectionDetails = nameof(DecisionManagerSelectionDetails);
         public const string InvalidLocationDecision = nameof(InvalidLocationDecision);
         public const string DuplicateFilesDecision = nameof(DuplicateFilesDecision);
+        public const string SimilarFilesDecision = nameof(SimilarFilesDecision);
     }
 }

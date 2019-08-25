@@ -12,6 +12,6 @@ namespace PhotoFolder.Core.Dto.Services.FileIssue
 
         public FileInformation File { get; }
         public IEnumerable<FileInformation> RelevantFiles { get; }
-        public string Identity => File.Hash;
+        public string Identity => File.Hash.ToString();
     }
 }

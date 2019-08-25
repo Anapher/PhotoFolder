@@ -23,7 +23,7 @@ namespace PhotoFolder.Core.Services.FileIntegrityValidators
         {
             var pathPattern = photoDirectory.GetFilenameTemplate(file).ToRegexPattern();
 
-            if (!file.IsRelativeFilename || !Regex.IsMatch(file.Filename, pathPattern))
+            if (file.RelativeFilename == null || !Regex.IsMatch(file.RelativeFilename, pathPattern))
             {
                 var recommendedPath = photoDirectory.GetRecommendedPath(file);
                 var recommendedDirectory = _pathUtils.GetDirectoryName(recommendedPath);
@@ -32,7 +32,7 @@ namespace PhotoFolder.Core.Services.FileIntegrityValidators
                 var directoryTemplate = photoDirectory.GetFileDirectoryTemplate(file);
                 var directoryRegex = new Regex(directoryTemplate.ToRegexPattern());
 
-                var directorySuggestions = indexedFiles.SelectMany(x => x.Files).Select(x => _pathUtils.GetDirectoryName(x.Filename))
+                var directorySuggestions = indexedFiles.SelectMany(x => x.Files).Select(x => _pathUtils.GetDirectoryName(x.RelativeFilename))
                     .Where(x => directoryRegex.IsMatch(x)).Concat(recommendedDirectory.Yield()).Distinct().ToList();
 
                 yield return new InvalidFileLocationIssue(file, directoryTemplate,

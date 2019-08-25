@@ -20,19 +20,19 @@ namespace PhotoFolder.Wpf.Services
                     yield return new InvalidLocationFileDecisionViewModel(invalidFileLocationIssue);
                 else if (issue is SimilarFilesIssue similarFilesIssue)
                     yield return new SimilarFileDecisionViewModel(similarFilesIssue,
-                        similarFilesIssue.RelevantFiles.Concat(new[] {similarFilesIssue.File}).Select(x => new Checkable<FileInformation>(x)).ToList());
+                        similarFilesIssue.RelevantFiles.Concat(new[] {similarFilesIssue.File}).Select(x => new Checkable<FileInformation>(x, true)).ToList());
         }
 
         private static IIssueDecisionViewModel Create(DuplicateFilesIssue duplicateFilesIssue, IPhotoDirectory photoDirectory)
         {
-            var isInDirectory = duplicateFilesIssue.File.IsRelativeFilename;
-
             IEnumerable<Checkable<FileInformation>> filesToKeep;
-            if (isInDirectory)
+            if (duplicateFilesIssue.File.RelativeFilename != null)
             {
                 // just keep one file, try to find the file that is located correctly
-                var bestFile = duplicateFilesIssue.RelevantFiles.FirstOrDefault(x => Regex.IsMatch(x.Filename, photoDirectory.GetFilenameTemplate(x).ToRegexPattern())) ??
+                var bestFile = duplicateFilesIssue.RelevantFiles.FirstOrDefault(x =>
+                                   x.RelativeFilename != null && Regex.IsMatch(x.RelativeFilename, photoDirectory.GetFilenameTemplate(x).ToRegexPattern())) ??
                                duplicateFilesIssue.File;
+
                 filesToKeep = new[] {duplicateFilesIssue.File}.Concat(duplicateFilesIssue.RelevantFiles)
                     .Select(x => new Checkable<FileInformation>(x, x == bestFile));
             }

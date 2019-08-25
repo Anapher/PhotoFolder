@@ -1,4 +1,5 @@
-﻿using PhotoFolder.Core.Dto.UseCaseRequests;
+﻿using System.IO;
+using PhotoFolder.Core.Dto.UseCaseRequests;
 using PhotoFolder.Core.Dto.UseCaseResponses;
 using PhotoFolder.Core.Errors;
 using PhotoFolder.Core.Interfaces;
@@ -13,12 +14,14 @@ namespace PhotoFolder.Core.UseCases
     {
         public async Task<RemoveFileFromIndexResponse?> Handle(RemoveFileFromIndexRequest message)
         {
-            var directory = message.PhotoDirectory;
+            if (Path.IsPathFullyQualified(message.RelativeFilename))
+                return ReturnError(new InvalidOperationError("The path is fully qualified. Only relative paths are stored", ErrorCode.PathFullyQualified));
 
+            var directory = message.PhotoDirectory;
             using (var dataContext = directory.GetDataContext())
             {
                 // check if the file already exists
-                var existingFile = await dataContext.FileRepository.FirstOrDefaultBySpecs(new FindByFilenameSpec(message.Filename),
+                var existingFile = await dataContext.FileRepository.FirstOrDefaultBySpecs(new FindByFilenameSpec(message.RelativeFilename),
                     new IncludeFileLocationsSpec());
                 if (existingFile == null)
                 {
@@ -27,9 +30,9 @@ namespace PhotoFolder.Core.UseCases
                 }
 
                 var fileLocation = existingFile.Files.First(x => directory.PathComparer.Equals(
-                    message.Filename, message.Filename));
+                    message.RelativeFilename, message.RelativeFilename));
 
-                existingFile.RemoveLocation(fileLocation.Filename);
+                existingFile.RemoveLocation(fileLocation.RelativeFilename);
                 await dataContext.FileRepository.RemoveFileLocation(fileLocation);
 
                 if (!existingFile.Files.Any())

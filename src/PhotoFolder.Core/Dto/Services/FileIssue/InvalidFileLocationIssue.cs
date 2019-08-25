@@ -1,5 +1,5 @@
-﻿using PhotoFolder.Core.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using PhotoFolder.Core.Domain.Template;
 
 namespace PhotoFolder.Core.Dto.Services.FileIssue
@@ -15,14 +15,14 @@ namespace PhotoFolder.Core.Dto.Services.FileIssue
         }
 
         public FileInformation File { get; }
-        public IEnumerable<FileInformation> RelevantFiles => File.Yield();
+        public IEnumerable<FileInformation> RelevantFiles => Enumerable.Empty<FileInformation>();
 
         public TemplateString DirectoryPathTemplate { get; }
         public IReadOnlyList<FilenameSuggestion> Suggestions { get; }
 
         public string CorrectFilename { get; }
 
-        public string Identity => File.Filename;
+        public string Identity => File.RelativeFilename ?? File.Filename;
     }
 
     public class FilenameSuggestion

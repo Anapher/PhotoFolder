@@ -47,7 +47,7 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Value.Filename}" Header="File" />
+                    <GridViewColumn DisplayMemberBinding="{Binding Value.RelativeFilename}" Header="File" />
                     <GridViewColumn Width="120" Header="Hash">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>

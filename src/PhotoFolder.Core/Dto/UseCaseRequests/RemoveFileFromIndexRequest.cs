@@ -6,13 +6,13 @@ namespace PhotoFolder.Core.Dto.UseCaseRequests
 {
     public class RemoveFileFromIndexRequest : IUseCaseRequest<RemoveFileFromIndexResponse>
     {
-        public RemoveFileFromIndexRequest(string filename, IPhotoDirectory photoDirectory)
+        public RemoveFileFromIndexRequest(string relativeFilename, IPhotoDirectory photoDirectory)
         {
-            Filename = filename;
+            RelativeFilename = relativeFilename;
             PhotoDirectory = photoDirectory;
         }
 
-        public string Filename { get; }
+        public string RelativeFilename { get; }
         public IPhotoDirectory PhotoDirectory { get; }
     }
 }

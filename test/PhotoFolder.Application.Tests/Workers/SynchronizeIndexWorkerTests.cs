@@ -1,7 +1,6 @@
 ﻿using Moq;
 using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Workers;
-using PhotoFolder.Core;
 using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.Services;
@@ -13,8 +12,8 @@ using PhotoFolder.Core.Interfaces.UseCases;
 using PhotoFolder.Core.Specifications.FileInformation;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -22,9 +21,11 @@ namespace PhotoFolder.Application.Tests.Workers
 {
     public class SynchronizeIndexWorkerTests
     {
+        private const string PhotoDirectory = "C:/photo dir";
+
         private async Task TestExecute(IEnumerable<IndexedFile> indexedFiles, IEnumerable<IFile> localFiles,
                                       IEnumerable<string> expectedAddedFiles, IEnumerable<string> expectedRemovedFiles,
-                                      IEnumerable<FileOperation> expectedOperations, IEnumerable<(long, long)> simliarFiles)
+                                      IEnumerable<FileOperation> expectedOperations, IEnumerable<(long, long)> similarFiles)
         {
             var removedFiles = new List<string>();
             var addedFiles = new List<string>();
@@ -47,7 +48,7 @@ namespace PhotoFolder.Application.Tests.Workers
                     var mock = new Mock<IRemoveFileFromIndexUseCase>();
                     mock.SetupGet(x => x.HasError).Returns(false);
                     mock.Setup(x => x.Handle(It.IsAny<RemoveFileFromIndexRequest>()))
-                        .Callback((RemoveFileFromIndexRequest x) => removedFiles.Add(x.Filename));
+                        .Callback((RemoveFileFromIndexRequest x) => removedFiles.Add(x.RelativeFilename));
 
                     return mock.Object;
                 });
@@ -58,9 +59,9 @@ namespace PhotoFolder.Application.Tests.Workers
                     var mock = new Mock<IAddFileToIndexUseCase>();
                     mock.SetupGet(x => x.HasError).Returns(false);
                     mock.Setup(x => x.Handle(It.IsAny<AddFileToIndexRequest>()))
-                        .Callback((AddFileToIndexRequest x) => addedFiles.Add(x.Filename)).ReturnsAsync((AddFileToIndexRequest request) => {
+                        .Callback((AddFileToIndexRequest x) => addedFiles.Add(x.Filename.Substring(PhotoDirectory.Length + 1))).ReturnsAsync((AddFileToIndexRequest request) => {
                             var indexedFile = CreateIndexedFile(localFiles.First(x => x.Filename == request.Filename).Length, request.Filename);
-                            return new AddFileToIndexResponse(indexedFile, indexedFile.GetFileByFilename(request.Filename));
+                            return new AddFileToIndexResponse(indexedFile, indexedFile.Files.Single());
                         });
 
                     return mock.Object;
@@ -73,10 +74,15 @@ namespace PhotoFolder.Application.Tests.Workers
             mockPhotoDirectory.Setup(x => x.EnumerateFiles()).Returns(localFiles);
             mockPhotoDirectory.Setup(x => x.GetDataContext()).Returns(mockDataContext.Object);
             mockPhotoDirectory.SetupGet(x => x.PathComparer).Returns(mockPathComparer.Object);
+            mockPhotoDirectory.Setup(x => x.ToFileInformation(It.IsAny<IndexedFile>(), It.IsAny<FileLocation>())).Returns(
+                (IndexedFile indexedFile, FileLocation fileLocation) => new FileInformation(PhotoDirectory + "/" + fileLocation.RelativeFilename, indexedFile.CreatedOn,
+                    indexedFile.ModifiedOn, Hash.Parse(indexedFile.Hash), indexedFile.Length, indexedFile.FileCreatedOn, indexedFile.PhotoProperties,
+                    fileLocation.RelativeFilename));
+
             mockFileContentInfoComparer.Setup(x => x.Equals(It.IsAny<IFileContentInfo>(), It.IsAny<IFileContentInfo>()))
                 .Returns((IFileContentInfo x, IFileContentInfo y) => x.Length == y.Length
-                || simliarFiles.Any(z => z.Item1 == x.Length && z.Item2 == y.Length)
-                || simliarFiles.Any(z => z.Item1 == y.Length && z.Item2 == x.Length));
+                || similarFiles.Any(z => z.Item1 == x.Length && z.Item2 == y.Length)
+                || similarFiles.Any(z => z.Item1 == y.Length && z.Item2 == x.Length));
 
             var worker = new SynchronizeIndexWorker(mockServiceProvider.Object, mockFileContentInfoComparer.Object);
 
@@ -86,11 +92,13 @@ namespace PhotoFolder.Application.Tests.Workers
             // assert
             Assert.Equal(expectedAddedFiles.OrderBy(x => x), addedFiles.OrderBy(x => x));
             Assert.Equal(expectedRemovedFiles.OrderBy(x => x), removedFiles.OrderBy(x => x));
-            Assert.Collection(operations.OrderBy(x => x.TargetFile.Filename).ThenBy(x => x.Type), expectedOperations.OrderBy(x => x.TargetFile.Filename).ThenBy(x => x.Type).Select(x => new Action<FileOperation>(y => {
-                Assert.Equal(x.Type, y.Type);
-                Assert.Equal(x.TargetFile.Filename, y.TargetFile.Filename);
-                Assert.Equal(x.SourceFile?.Filename, y.SourceFile?.Filename);
-            })).ToArray());
+            Assert.Collection(operations.OrderBy(x => x.TargetFile.RelativeFilename).ThenBy(x => x.Type), expectedOperations
+                .OrderBy(x => x.TargetFile.RelativeFilename).ThenBy(x => x.Type).Select(x => new Action<FileOperation>(y =>
+                {
+                    Assert.Equal(x.Type, y.Type);
+                    Assert.Equal(x.TargetFile.RelativeFilename, y.TargetFile.RelativeFilename);
+                    Assert.Equal(x.SourceFile?.RelativeFilename, y.SourceFile?.RelativeFilename);
+                })).ToArray());
         }
 
         private static IndexedFile CreateIndexedFile(long length, params string[] filenames)
@@ -99,7 +107,10 @@ namespace PhotoFolder.Application.Tests.Workers
             var file = new IndexedFile(Hash.Parse(hash), length, default, default);
             foreach (var filename in filenames)
             {
-                file.AddLocation(new FileLocation(filename, hash, default, default));
+                string path = filename;
+                if (Path.IsPathFullyQualified(path)) path = path.Substring(PhotoDirectory.Length + 1);
+
+                file.AddLocation(new FileLocation(path, hash, default, default));
             }
             return file;
         }
@@ -107,7 +118,8 @@ namespace PhotoFolder.Application.Tests.Workers
         private static IFile CreateFile(long length, string filename)
         {
             var mock = new Mock<IFile>();
-            mock.SetupGet(x => x.Filename).Returns(filename);
+            mock.SetupGet(x => x.Filename).Returns(PhotoDirectory + "/" + filename);
+            mock.SetupGet(x => x.RelativeFilename).Returns(filename);
             mock.SetupGet(x => x.Length).Returns(length);
 
             return mock.Object;

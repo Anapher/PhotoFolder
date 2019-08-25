@@ -8,10 +8,10 @@ namespace PhotoFolder.Infrastructure.Photos
 {
     public static class FilePlaceholderFiller
     {
-        private static readonly IReadOnlyDictionary<string, Func<FileInformation, string, string?>> _placeholderMap
+        private static readonly IReadOnlyDictionary<string, Func<FileInformation, string, string?>> PlaceholderMap
             = new Dictionary<string, Func<FileInformation, string, string?>> {
-                { "hash", (x, param) => FormatString(x.Hash, param) },
-                { "filename", (x, param) => FormatString(Path.GetFileName(x.Filename), param)},
+                { "hash", (x, param) => FormatString(x.Hash.ToString(), param) },
+                { "filename", (x, param) => FormatString(Path.GetFileName(x.RelativeFilename), param)},
                 { "width", (x, _) => x.PhotoProperties?.Width.ToString() ?? string.Empty },
                 { "height", (x, _) => x.PhotoProperties?.Height.ToString() ?? string.Empty },
                 { "date", (x, param) => FormatDateTimeOffset(x.FileCreatedOn, param) }
@@ -27,7 +27,7 @@ namespace PhotoFolder.Infrastructure.Photos
         {
             var parameters = key.Split(':', 2);
 
-            if (_placeholderMap.TryGetValue(parameters[0], out var placeholderFn))
+            if (PlaceholderMap.TryGetValue(parameters[0], out var placeholderFn))
                 return placeholderFn(fileInformation, parameters.Skip(1).FirstOrDefault());
 
             return null;

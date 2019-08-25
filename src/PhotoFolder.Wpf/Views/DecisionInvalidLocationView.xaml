@@ -60,7 +60,7 @@
                 <TextBlock
                     Margin="0,2,0,0"
                     FontSize="14"
-                    Text="{Binding Issue.File.Filename}" />
+                    Text="{Binding Issue.File.RelativeFilename}" />
             </StackPanel>
             <StackPanel
                 Grid.Row="2"

@@ -55,7 +55,7 @@
                 <TextBlock Text="Filename:" />
                 <TextBlock
                     Grid.Column="1"
-                    Text="{Binding Selection.Decision.Issue.File.Filename}"
+                    Text="{Binding Selection.Decision.Issue.File.RelativeFilename}"
                     TextTrimming="CharacterEllipsis" />
             </Grid>
             <Grid Margin="{StaticResource PropertiesMargin}">
@@ -173,7 +173,7 @@
                                 Grid.Column="1"
                                 Margin="8,0,0,0"
                                 TextWrapping="Wrap">
-                                <Run Foreground="#d35400" Text="{Binding File.Filename, Mode=OneWay}" />
+                                <Run Foreground="#d35400" Text="{Binding File.RelativeFilename, Mode=OneWay}" />
                                 <Run Text="to" />
                                 <Run Foreground="#2980b9" Text="{Binding TargetPath, Mode=OneWay}" />
                             </TextBlock>
@@ -202,7 +202,7 @@
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="8,0,0,0"
-                                Text="{Binding File.Filename}"
+                                Text="{Binding File.RelativeFilename}"
                                 TextWrapping="Wrap" />
                         </Grid>
                     </DataTemplate>

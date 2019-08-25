@@ -4,6 +4,8 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using PhotoFolder.Core.Domain;
+using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Domain.Template;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Gateways;
@@ -12,6 +14,7 @@ using PhotoFolder.Infrastructure.Data;
 using PhotoFolder.Infrastructure.Utilities;
 using FileInfoWrapper = PhotoFolder.Infrastructure.Files.FileInfoWrapper;
 using IFile = PhotoFolder.Core.Dto.Services.IFile;
+using IFileInfo = System.IO.Abstractions.IFileInfo;
 
 namespace PhotoFolder.Infrastructure.Photos
 {
@@ -27,7 +30,7 @@ namespace PhotoFolder.Infrastructure.Photos
             DbContextOptions<AppDbContext> dbOptions)
         {
             _fileSystem = fileSystem;
-            _rootDirectory = rootDirectory.ToForwardSlashes();
+            _rootDirectory = rootDirectory.ToForwardSlashes().TrimEnd('/');
 
             _photoFilenameTemplate = TemplateString.Parse(config.TemplatePath.ToForwardSlashes());
             _dbOptions = dbOptions;
@@ -40,7 +43,7 @@ namespace PhotoFolder.Infrastructure.Photos
             return _fileSystem.DirectoryInfo.FromDirectoryName(_rootDirectory)
                 .EnumerateFiles("*", SearchOption.AllDirectories)
                 .Where(x => x.Name != PhotoFolderConsts.ConfigFileName && !x.Attributes.HasFlag(FileAttributes.Hidden))
-                .Select(x => new FileInfoWrapper(x, _rootDirectory));
+                .Select(ToWrapper);
         }
 
         public IFile? GetFile(string filename)
@@ -48,11 +51,17 @@ namespace PhotoFolder.Infrastructure.Photos
             var fileInfo = _fileSystem.FileInfo.FromFileName(_fileSystem.Path.Combine(_rootDirectory, filename));
             if (!fileInfo.Exists) return null;
 
-            return new FileInfoWrapper(fileInfo, _rootDirectory);
+            return ToWrapper(fileInfo);
         }
 
-        public string GetAbsolutePath(FileInformation fileInformation) =>
-            fileInformation.IsRelativeFilename ? _fileSystem.Path.Combine(_rootDirectory, fileInformation.Filename).ToForwardSlashes() : fileInformation.Filename.ToForwardSlashes();
+        private FileInfoWrapper ToWrapper(IFileInfo fileInfo)
+        {
+            var filename = fileInfo.FullName.ToForwardSlashes();
+            if (filename.StartsWith(_rootDirectory))
+                return new FileInfoWrapper(fileInfo, filename.Substring(_rootDirectory.Length + 1)); // + 1 for the slash
+
+            return new FileInfoWrapper(fileInfo, null);
+        }
 
         public TemplateString GetFileDirectoryTemplate(FileInformation fileInformation)
         {
@@ -91,6 +100,16 @@ namespace PhotoFolder.Infrastructure.Photos
             var path = _photoFilenameTemplate.ToString(values.ToDictionary(x => x.Key, x => x.Value ?? string.Empty));
 
             return ClearPath(path);
+        }
+
+        public FileInformation ToFileInformation(IndexedFile indexedFile, FileLocation fileLocation)
+        {
+            if (indexedFile.Files.All(x => x != fileLocation))
+                throw new ArgumentException("Can only get file information if the location belongs to the indexed file.", nameof(fileLocation));
+
+            return new FileInformation(_fileSystem.Path.Combine(_rootDirectory, fileLocation.RelativeFilename).ToForwardSlashes(), fileLocation.CreatedOn,
+                fileLocation.ModifiedOn, Hash.Parse(indexedFile.Hash), indexedFile.Length, indexedFile.FileCreatedOn, indexedFile.PhotoProperties,
+                fileLocation.RelativeFilename);
         }
 
         public IPhotoDirectoryDataContext GetDataContext() => new PhotoDirectoryDataContext(GetAppDbContext());

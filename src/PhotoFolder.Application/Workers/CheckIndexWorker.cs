@@ -18,8 +18,9 @@ namespace PhotoFolder.Application.Workers
 
         public CheckIndexWorker(ICheckFilesWorker checkFilesWorker)
         {
-            State = _checkFilesWorker.State;
             _checkFilesWorker = checkFilesWorker;
+
+            State = checkFilesWorker.State;
         }
 
         public CheckFilesState State { get; }
@@ -33,7 +34,7 @@ namespace PhotoFolder.Application.Workers
                 indexedFiles = await context.FileRepository.GetAllBySpecs(new IncludeFileLocationsSpec());
             }
 
-            var fileInfos = indexedFiles.SelectMany(x => x.Files.Select(y => x.ToFileInformation(y.Filename))).ToList();
+            var fileInfos = indexedFiles.SelectMany(x => x.Files.Select(y => x.ToFileInformation(request.Directory))).ToList();
             return await _checkFilesWorker.Execute(new CheckFilesRequest(fileInfos, request.Directory));
         }
     }

@@ -42,7 +42,7 @@ namespace PhotoFolder.Wpf.ViewModels
             switch (viewModel.Decision.Issue)
             {
                 case InvalidFileLocationIssue invalidLocation:
-                    Title = $"Invalid location ({invalidLocation.File.Filename})";
+                    Title = $"Invalid location ({invalidLocation.File.RelativeFilename})";
                     break;
                 case DuplicateFilesIssue duplicateFiles:
                     Title = $"{duplicateFiles.RelevantFiles.Count() + 1} duplicate files found (hash: {duplicateFiles.File.Hash})";

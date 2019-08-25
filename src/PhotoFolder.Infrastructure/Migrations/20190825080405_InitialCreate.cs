@@ -48,14 +48,14 @@ namespace PhotoFolder.Infrastructure.Migrations
                 name: "FileLocation",
                 columns: table => new
                 {
-                    Filename = table.Column<string>(nullable: false),
+                    RelativeFilename = table.Column<string>(nullable: false),
                     Hash = table.Column<string>(nullable: true),
                     CreatedOn = table.Column<DateTimeOffset>(nullable: false),
                     ModifiedOn = table.Column<DateTimeOffset>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FileLocation", x => x.Filename);
+                    table.PrimaryKey("PK_FileLocation", x => x.RelativeFilename);
                     table.ForeignKey(
                         name: "FK_FileLocation_IndexedFiles_Hash",
                         column: x => x.Hash,
