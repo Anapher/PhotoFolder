@@ -8,6 +8,7 @@ namespace PhotoFolder.Core.Interfaces.Gateways
     public interface IPhotoDirectory
     {
         IEqualityComparer<string> PathComparer { get; }
+        IDeletedFiles DeletedFiles { get; }
 
         IEnumerable<IFile> EnumerateFiles();
         IFile? GetFile(string filename);

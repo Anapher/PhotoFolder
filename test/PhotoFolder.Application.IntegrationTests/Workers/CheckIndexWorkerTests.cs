@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Interfaces.Workers;
+using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Extensions;
 using PhotoFolder.Infrastructure.Services;
@@ -138,6 +140,44 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
             Assert.Single(similarFileIssue.RelevantFiles);
             Assert.Equal(similarFileIssue.RelevantFiles.Concat(issue.File.Yield()).Select(x => x.RelativeFilename).OrderBy(x => x),
                 new[] {"2010/05.09 - Flora Wanderung/flora_sonyalpha_compressed.jpg", "2010/05.09 - Flora Wanderung/flora_sonyalpha.jpg"}.OrderBy(x => x));
+        }
+
+        [Fact]
+        public async Task TestFormerlyDeletedFilesAreNotShown()
+        {
+            // arrange
+            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+
+            var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
+            var photoDirectory = await loader.Load(DefaultPhotoFolder.PhotoFolderPath);
+
+            app.MockFileSystem.File.Delete(Path.Combine(DefaultPhotoFolder.PhotoFolderPath, "2015/10.25/egypt_sonyz3.jpg"));
+
+            var synchronizeWorker = app.Container.Resolve<ISynchronizeIndexWorker>();
+            var syncResult = await synchronizeWorker.Execute(new SynchronizeIndexRequest(photoDirectory));
+
+            var op = Assert.Single(syncResult.Operations);
+            Assert.Equal(FileOperationType.Removed, op.Type);
+
+            Assert.NotEmpty(photoDirectory.DeletedFiles.Files);
+
+            app.AddResourceFile(Path.Combine(DefaultPhotoFolder.PhotoFolderPath, "test.jpg"), "egypt_sonyz3.jpg");
+
+            synchronizeWorker = app.Container.Resolve<ISynchronizeIndexWorker>();
+            syncResult = await synchronizeWorker.Execute(new SynchronizeIndexRequest(photoDirectory));
+
+            op = Assert.Single(syncResult.Operations);
+            Assert.Equal(FileOperationType.New, op.Type);
+
+            var worker = app.Container.Resolve<ICheckIndexWorker>();
+
+            // act
+            var response = await worker.Execute(new CheckIndexRequest(photoDirectory));
+
+            // assert
+            var issue = Assert.Single(response.Issues);
+            Assert.IsType<InvalidFileLocationIssue>(issue);
+            Assert.Empty(photoDirectory.DeletedFiles.Files);
         }
     }
 }

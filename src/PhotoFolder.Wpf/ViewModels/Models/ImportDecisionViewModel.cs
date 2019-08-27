@@ -5,6 +5,7 @@ using System.Linq;
 using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.Services.FileIssue;
+using PhotoFolder.Core.Extensions;
 using Prism.Mvvm;
 
 namespace PhotoFolder.Wpf.ViewModels.Models
@@ -178,6 +179,15 @@ namespace PhotoFolder.Wpf.ViewModels.Models
         }
 
         public override bool IsRecommended { get; } = false;
+    }
+
+    public class FormerlyDeletedFileDecisionViewModel : DeleteFilesDecisionViewModel
+    {
+        public FormerlyDeletedFileDecisionViewModel(FormerlyDeletedIssue formerlyDeletedIssue) : base(formerlyDeletedIssue, formerlyDeletedIssue.File.Yield().Select(x => new Checkable<FileInformation>(x)).ToList())
+        {
+        }
+
+        public override bool IsRecommended { get; } = true;
     }
 
     public class InvalidLocationFileDecisionViewModel : BindableBase, IIssueDecisionViewModel

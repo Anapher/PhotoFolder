@@ -39,9 +39,9 @@ namespace PhotoFolder.Core.UseCases
                 {
                     await dataContext.FileRepository.Delete(existingFile);
                 }
-            }
 
-            return new RemoveFileFromIndexResponse();
+                return new RemoveFileFromIndexResponse(!existingFile.Files.Any());
+            }
         }
     }
 }

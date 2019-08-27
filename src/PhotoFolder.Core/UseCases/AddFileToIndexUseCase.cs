@@ -71,7 +71,7 @@ namespace PhotoFolder.Core.UseCases
             else
                 await dataContext.FileRepository.Add(indexedFile);
 
-            return new AddFileToIndexResponse(indexedFile, fileLocation);
+            return new AddFileToIndexResponse(indexedFile, fileLocation, !isIndexedFileInDb);
         }
 
         private Hash ComputeHash(IFile file)

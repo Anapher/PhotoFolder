@@ -6,6 +6,9 @@ using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Infrastructure.Services;
 using Xunit;
 using System.Linq;
+using PhotoFolder.Core.Domain.Entities;
+using System;
+using System.IO;
 
 namespace PhotoFolder.Application.IntegrationTests.Workers
 {
@@ -97,6 +100,46 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
 
             var similarFile = Assert.Single(similarFileIssue.RelevantFiles);
             Assert.Equal("2010/05.09/flora_sonyalpha.jpg", similarFile.RelativeFilename);
+        }
+
+        [Fact]
+        public async Task TestFormerlyDeletedFile()
+        {
+            // arrange
+            var beginTime = DateTimeOffset.UtcNow;
+            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+
+            var entryToDelete = "2019/03.30/hanszimmer_htcu11.jpg";
+            app.MockFileSystem.File.Delete(Path.Combine(DefaultPhotoFolder.PhotoFolderPath, entryToDelete));
+
+            var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
+            var photoDirectory = await loader.Load(DefaultPhotoFolder.PhotoFolderPath);
+
+            var synchronizeWorker = app.Container.Resolve<ISynchronizeIndexWorker>();
+            var syncResult = await synchronizeWorker.Execute(new SynchronizeIndexRequest(photoDirectory));
+
+            var op = Assert.Single(syncResult.Operations);
+            Assert.Equal(FileOperationType.Removed, op.Type);
+
+            // the file should now be stored as a formerly deleted file
+            Assert.NotEmpty(photoDirectory.DeletedFiles.Files);
+
+            const string formerlyDeletedFilePath = "C:/hanszimmer.jpg";
+            app.AddResourceFile(formerlyDeletedFilePath, "hanszimmer_htcu11.jpg");
+            var worker = app.Container.Resolve<IImportFilesWorker>();
+
+            // act
+            var response = await worker.Execute(new ImportFilesRequest(new[] { formerlyDeletedFilePath }, photoDirectory));
+
+            // assert
+            Assert.Equal(2, response.Issues.Count);
+            Assert.Single(response.Issues.OfType<InvalidFileLocationIssue>());
+
+            var formerlyDeletedIssue = Assert.Single(response.Issues.OfType<FormerlyDeletedIssue>());
+
+            Assert.True(formerlyDeletedIssue.DeletedFileInfo.DeletedAt > beginTime, "The deleted at property was set to current time");
+            Assert.Equal(entryToDelete, formerlyDeletedIssue.DeletedFileInfo.RelativeFilename);
+            Assert.Equal(formerlyDeletedFilePath, formerlyDeletedIssue.File.Filename);
         }
     }
 }

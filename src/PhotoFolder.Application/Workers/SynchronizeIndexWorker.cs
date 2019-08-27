@@ -61,18 +61,26 @@ namespace PhotoFolder.Application.Workers
             // get changes
             var (newFiles, removedFiles) = CollectionDiff.Create(indexedFileInfos, localFiles, new FileInfoComparer());
 
+            // files that are completely removed from the directory
+            var completelyRemovedFiles = new List<IFileInfo>();
+
             // remove files from index
             foreach (var removedFile in removedFiles)
             {
                 var action = _serviceProvider.GetRequiredService<IRemoveFileFromIndexUseCase>();
-                await action.Handle(new RemoveFileFromIndexRequest(removedFile.RelativeFilename!, directory));
+                var response = await action.Handle(new RemoveFileFromIndexRequest(removedFile.RelativeFilename!, directory));
 
                 if (action.HasError)
                     State.Errors.Add(removedFile.RelativeFilename!, action.Error!);
+
+                if (response!.IsCompletelyRemoved)
+                    completelyRemovedFiles.Add(removedFile);
             }
 
             IImmutableList<FileInformation> removedFilesInformation = removedFiles.Where(x => x.RelativeFilename != null).Select(x =>
                 indexedFiles.First(y => y.GetFileByFilename(x.RelativeFilename!) != null).ToFileInformation(x.RelativeFilename!, directory)).ToImmutableList();
+            var deletedFiles = directory.DeletedFiles.Files;
+            var deletedFilesLock = new object();
 
             State.Status = SynchronizeIndexStatus.IndexingNewFiles;
             State.TotalFiles = newFiles.Count;
@@ -113,6 +121,13 @@ namespace PhotoFolder.Application.Workers
                 }
 
                 var (indexedFile, fileLocation) = response!;
+
+                // remove from deleted files
+                if (deletedFiles.ContainsKey(indexedFile.Hash))
+                    lock (deletedFilesLock)
+                    {
+                        deletedFiles = deletedFiles.Remove(indexedFile.Hash);
+                    }
 
                 FileOperation fileOperation;
 
@@ -156,8 +171,16 @@ namespace PhotoFolder.Application.Workers
                 await dataContext.OperationRepository.Add(operation);
 
                 operations.Add(operation);
+
+                // add the file to deleted files, if it was completely removed from index
+                // WARN: if a file changes, the previous file is not marked as deleted. Idk if that is actually desired
+                if (completelyRemovedFiles.Any(x => x.Filename == removedFile.Filename))
+                {
+                    deletedFiles = deletedFiles.Add(removedFile.Hash.ToString(), new DeletedFileInfo(removedFile.RelativeFilename!, removedFile.Length, removedFile.Hash, removedFile.PhotoProperties, removedFile.FileCreatedOn, DateTimeOffset.UtcNow));
+                }
             }
 
+            await directory.DeletedFiles.Update(deletedFiles);
             return new SynchronizeIndexResponse(operations.ToList());
         }
 

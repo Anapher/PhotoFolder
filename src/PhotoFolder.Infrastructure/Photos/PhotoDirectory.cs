@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -27,16 +28,18 @@ namespace PhotoFolder.Infrastructure.Photos
         private readonly string _rootDirectory;
 
         public PhotoDirectory(IFileSystem fileSystem, string rootDirectory, PhotoDirectoryConfig config,
-            DbContextOptions<AppDbContext> dbOptions)
+            DbContextOptions<AppDbContext> dbOptions, IDeletedFiles deletedFiles)
         {
             _fileSystem = fileSystem;
             _rootDirectory = rootDirectory.ToForwardSlashes().TrimEnd('/');
 
             _photoFilenameTemplate = TemplateString.Parse(config.TemplatePath.ToForwardSlashes());
             _dbOptions = dbOptions;
+            DeletedFiles = deletedFiles;
         }
 
         public IEqualityComparer<string> PathComparer => StringComparer.OrdinalIgnoreCase;
+        public IDeletedFiles DeletedFiles { get; }
 
         public IEnumerable<IFile> EnumerateFiles()
         {
@@ -115,5 +118,10 @@ namespace PhotoFolder.Infrastructure.Photos
         public IPhotoDirectoryDataContext GetDataContext() => new PhotoDirectoryDataContext(GetAppDbContext());
 
         public AppDbContext GetAppDbContext() => new AppDbContext(_dbOptions);
+
+        public void UpdateDeletedFiles(IReadOnlyDictionary<string, DeletedFileInfo> deletedFiles)
+        {
+
+        }
     }
 }

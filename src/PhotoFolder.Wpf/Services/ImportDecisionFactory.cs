@@ -20,7 +20,9 @@ namespace PhotoFolder.Wpf.Services
                     yield return new InvalidLocationFileDecisionViewModel(invalidFileLocationIssue);
                 else if (issue is SimilarFilesIssue similarFilesIssue)
                     yield return new SimilarFileDecisionViewModel(similarFilesIssue,
-                        similarFilesIssue.RelevantFiles.Concat(new[] {similarFilesIssue.File}).Select(x => new Checkable<FileInformation>(x, true)).ToList());
+                        similarFilesIssue.RelevantFiles.Concat(new[] { similarFilesIssue.File }).Select(x => new Checkable<FileInformation>(x, true)).ToList());
+                else if (issue is FormerlyDeletedIssue formerlyDeletedIssue)
+                    yield return new FormerlyDeletedFileDecisionViewModel(formerlyDeletedIssue);
         }
 
         private static IIssueDecisionViewModel Create(DuplicateFilesIssue duplicateFilesIssue, IPhotoDirectory photoDirectory)

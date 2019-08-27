@@ -18,5 +18,6 @@ namespace PhotoFolder.Infrastructure.Photos
 
         public string TemplatePath { get; set; }
         public Guid Guid { get; set; }
+        public string DeletedFilesPath { get; set; } = "deletedFiles.json";
     }
 }
