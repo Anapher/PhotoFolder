@@ -3,15 +3,25 @@ using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Infrastructure.Files;
 using System;
 using System.IO;
-using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PhotoFolder.Infrastructure.Tests.Photos
 {
     public class FilePropertiesLoaderTests
     {
+        private readonly ILogger<FileInformationLoader> _logger;
+
+        public FilePropertiesLoaderTests(ITestOutputHelper testOutputHelper)
+        {
+            var loggerFactory = new LoggerFactory();
+            loggerFactory.AddProvider(new XunitLoggerProvider(testOutputHelper));
+            _logger = loggerFactory.CreateLogger<FileInformationLoader>();
+        }
+
         [Theory]
         [MemberData(nameof(TestImage.AllTheoryData), MemberType = typeof(TestImage))]
         public async Task TestLoadInformationFromImage(TestImage image)
@@ -19,7 +29,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
             var file = new Mock<IFile>();
             file.Setup(x => x.OpenRead()).Returns(() => image.GetStream());
 
-            var loader = new FileInformationLoader(new SHA256FileHasher());
+            var loader = new FileInformationLoader(new SHA256FileHasher(), _logger);
             var result = await loader.Load(file.Object);
 
             Assert.Equal(image.Hash, result.Hash);
@@ -40,7 +50,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
             file.Setup(x => x.OpenRead()).Returns(textFile);
             file.SetupGet(x => x.ModifiedOn).Returns(createdOn);
 
-            var loader = new FileInformationLoader(new SHA256FileHasher());
+            var loader = new FileInformationLoader(new SHA256FileHasher(), _logger);
             var result = await loader.Load(file.Object);
 
             Assert.Equal("7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069", result.Hash.ToString());
