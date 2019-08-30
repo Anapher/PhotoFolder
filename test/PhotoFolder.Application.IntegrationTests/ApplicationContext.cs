@@ -6,12 +6,15 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using PhotoFolder.Core;
 using PhotoFolder.Infrastructure;
 using PhotoFolder.Infrastructure.Data;
 using PhotoFolder.Infrastructure.Photos;
+using Serilog;
+using Xunit.Abstractions;
 
 namespace PhotoFolder.Application.IntegrationTests
 {
@@ -34,7 +37,7 @@ namespace PhotoFolder.Application.IntegrationTests
                 $"PhotoFolder.Application.IntegrationTests.Resources.{resourceName}");
         }
 
-        public static ApplicationContext Initialize()
+        public static ApplicationContext Initialize(ITestOutputHelper testOutput)
         {
             var fileSystem = new MockFileSystem();
 
@@ -47,6 +50,19 @@ namespace PhotoFolder.Application.IntegrationTests
 
             builder.RegisterInstance(Options.Create(new WorkspaceOptions {ApplyMigrations = false})).As<IOptions<WorkspaceOptions>>();
             builder.RegisterInstance(Options.Create(new BitmapHashOptions())).As<IOptions<BitmapHashOptions>>();
+
+            var services = new ServiceCollection();
+
+            var logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.TestOutput(testOutput, Serilog.Events.LogEventLevel.Verbose)
+                .CreateLogger()
+                .ForContext<ApplicationContext>();
+
+            services.AddLogging(loggingBuilder =>
+              loggingBuilder.AddSerilog(logger, dispose: true));
+
+            builder.Populate(services);
 
             var dbName = Guid.NewGuid().ToString("N");
             var connectionString = $"DataSource={dbName};mode=memory;cache=shared";

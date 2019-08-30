@@ -9,16 +9,24 @@ using System.Linq;
 using PhotoFolder.Core.Domain.Entities;
 using System;
 using System.IO;
+using Xunit.Abstractions;
 
 namespace PhotoFolder.Application.IntegrationTests.Workers
 {
     public class ImportFilesWorkerTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public ImportFilesWorkerTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public async Task TestImportNewFile()
         {
             // arrange
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.CleanFileBase);
 
             const string newFilePath = "D:\\Camera\\lando.jpg";
             app.AddResourceFile(newFilePath, "lando_sonyalpha.jpg");
@@ -46,7 +54,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         public async Task TestDuplicateFile()
         {
             // arrange
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.CleanFileBase);
 
             const string newFilePath = "D:\\Camera\\hanszimmer_htcu11.jpg";
             app.AddResourceFile(newFilePath, "hanszimmer_htcu11.jpg");
@@ -76,7 +84,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         public async Task TestSimilarFile()
         {
             // arrange
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.CleanFileBase);
 
             const string newFilePath = "D:\\Camera\\flora.jpg";
             app.AddResourceFile(newFilePath, "flora_sonyalpha_compressed.jpg");
@@ -107,7 +115,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         {
             // arrange
             var beginTime = DateTimeOffset.UtcNow;
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.CleanFileBase);
 
             var entryToDelete = "2019/03.30/hanszimmer_htcu11.jpg";
             app.MockFileSystem.File.Delete(Path.Combine(DefaultPhotoFolder.PhotoFolderPath, entryToDelete));

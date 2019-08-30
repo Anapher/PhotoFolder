@@ -53,6 +53,8 @@ namespace PhotoFolder.Core.Domain.Entities
             return Files.FirstOrDefault(x => x.RelativeFilename == filename);
         }
 
+        public bool HasPath(string filename) => Files.Any(x => x.RelativeFilename == filename);
+
         public void RemoveLocation(string filename)
         {
             var fileLocation = _files.FirstOrDefault(x => x.RelativeFilename == filename);

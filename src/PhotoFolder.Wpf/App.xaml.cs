@@ -15,6 +15,11 @@ using DryIoc;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Services.FileIntegrityValidators;
 using Prism.DryIoc;
+using Serilog;
+using Microsoft.Extensions.DependencyInjection;
+using Autofac.Extensions.DependencyInjection;
+using DryIoc.Microsoft.DependencyInjection;
+using Prism.DryIoc.Ioc;
 
 namespace PhotoFolder.Wpf
 {
@@ -28,12 +33,34 @@ namespace PhotoFolder.Wpf
             return new MainWindow();
         }
 
+        private ILogger CreateLogger()
+        {
+            return new LoggerConfiguration()
+                .WriteTo.File("log/log.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+        }
+
+        protected override IContainerExtension CreateContainerExtension()
+        {
+            var services = new ServiceCollection();
+
+            var logger = CreateLogger();
+            services.AddLogging(loggingBuilder =>
+              loggingBuilder.AddSerilog(logger, dispose: true));
+
+            var container = new Container(CreateContainerRules())
+                .WithDependencyInjectionAdapter(services);
+
+            return new DryIocContainerExtension(container);
+        }
+
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             var builder = new ContainerBuilder();
             builder.RegisterModule<CoreModule>();
             builder.RegisterModule<InfrastructureModule>();
             builder.RegisterModule<ApplicationModule>();
+            builder.RegisterType<FileSystem>().As<IFileSystem>().SingleInstance();
 
             builder.RegisterInstance(Options.Create(new WorkspaceOptions())).As<IOptions<WorkspaceOptions>>();
             builder.RegisterInstance(Options.Create(new BitmapHashOptions())).As<IOptions<BitmapHashOptions>>();
@@ -47,6 +74,7 @@ namespace PhotoFolder.Wpf
             containerRegistry.RegisterSingleton<IAppSettingsProvider, AppSettingsProvider>();
 
             var drylocContainer = containerRegistry.GetContainer();
+
             drylocContainer.Register<IFileIntegrityValidator, DuplicateFileIntegrityValidator>(Reuse.Singleton, null, null,
                 IfAlreadyRegistered.AppendNewImplementation);
             drylocContainer.Register<IFileIntegrityValidator, SimilarFileIntegrityValidator>(Reuse.Singleton, null, null,

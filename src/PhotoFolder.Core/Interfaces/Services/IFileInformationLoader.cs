@@ -5,6 +5,6 @@ namespace PhotoFolder.Core.Interfaces.Services
 {
     public interface IFileInformationLoader
     {
-        Task<FileInformation> Load(IFile file);
+        ValueTask<FileInformation> Load(IFile file);
     }
 }

@@ -12,6 +12,7 @@ using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Infrastructure.Photos;
 using PhotoFolder.Infrastructure.Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PhotoFolder.Application.IntegrationTests
 {
@@ -34,9 +35,9 @@ namespace PhotoFolder.Application.IntegrationTests
         /// </summary>
         /// <param name="files">The files that should exist in the photo folder. Key should be the path (relative) and the value the file name of the resource</param>
         /// <returns></returns>
-        public static async Task<ApplicationContext> Initialize(IReadOnlyDictionary<string, string> files)
+        public static async Task<ApplicationContext> Initialize(ITestOutputHelper output, IReadOnlyDictionary<string, string> files)
         {
-            var app = ApplicationContext.Initialize();
+            var app = ApplicationContext.Initialize(output);
 
             foreach (var file in files)
                 app.AddResourceFile(Path.Combine(PhotoFolderPath, file.Key), file.Value);

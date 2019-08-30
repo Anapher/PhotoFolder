@@ -9,21 +9,29 @@ using PhotoFolder.Application.Interfaces.Workers;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Infrastructure.Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PhotoFolder.Application.IntegrationTests.Workers
 {
     public class SynchronizeIndexWorkerTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public SynchronizeIndexWorkerTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public Task TestCreateDatabaseAndSynchronize()
         {
-            return DefaultPhotoFolder.Initialize(DefaultPhotoFolder.DefaultFileBase);
+            return DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
         }
 
         [Fact]
         public Task TestCreateDatabaseAndSynchronizeDuplicates()
         {
-            return DefaultPhotoFolder.Initialize(new Dictionary<string, string>
+            return DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string>
             {
                 {"egypt_sonyz3.jpg", "egypt_sonyz3.jpg"}, {"asd/asd.jpg", "egypt_sonyz3.jpg"}
             });
@@ -32,7 +40,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         [Fact]
         public async Task TestSynchronizeWithoutChanges()
         {
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.DefaultFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
 
             var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
             var photoDirectory = await loader.Load(DefaultPhotoFolder.PhotoFolderPath);
@@ -46,7 +54,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         [Fact]
         public async Task TestSynchronizeExistingDatabase()
         {
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.DefaultFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
             var photoFolderPath = DefaultPhotoFolder.PhotoFolderPath;
 
             app.MockFileSystem.RemoveFile(Path.Combine(photoFolderPath, "egypt_sonyz3.jpg"));
@@ -80,7 +88,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         [Fact]
         public async Task<ApplicationContext> TestFileMoved()
         {
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.DefaultFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
             var photoFolderPath = DefaultPhotoFolder.PhotoFolderPath;
 
             var newDirectory = Path.Combine(photoFolderPath, "2019\\18");

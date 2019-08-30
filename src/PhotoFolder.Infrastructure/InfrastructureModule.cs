@@ -15,7 +15,8 @@ namespace PhotoFolder.Infrastructure
         {
             builder.RegisterAssemblyTypes(ThisAssembly).AsClosedTypesOf(typeof(IRepository<>)).AsImplementedInterfaces();
             builder.RegisterType<JsonSerializer>().As<IDataSerializer>().SingleInstance();
-            builder.RegisterType<FileInformationLoader>().As<IFileInformationLoader>().SingleInstance();
+            builder.RegisterType<FileInformationLoader>().AsSelf().As<IFileInformationLoader>().SingleInstance();
+            builder.RegisterType<DiskLockedFileInformationLoader>().As<IFileInformationLoader>().SingleInstance();
             builder.RegisterType<SHA256FileHasher>().As<IFileHasher>().SingleInstance();
             builder.RegisterType<BitmapHashComparer>().As<IBitmapHashComparer>().SingleInstance();
             builder.RegisterType<AppDbContextOptionsBuilder>().As<IAppDbContextOptionsBuilder>().SingleInstance();

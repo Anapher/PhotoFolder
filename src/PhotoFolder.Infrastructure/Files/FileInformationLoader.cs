@@ -10,58 +10,77 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using PhotoFolder.Core.Dto.Services;
+using Microsoft.Extensions.Logging;
 
 namespace PhotoFolder.Infrastructure.Files
 {
     public class FileInformationLoader : IFileInformationLoader
     {
         private readonly IFileHasher _fileHasher;
+        private readonly ILogger<FileInformationLoader> _logger;
 
-        public FileInformationLoader(IFileHasher fileHasher)
+        public FileInformationLoader(IFileHasher fileHasher, ILogger<FileInformationLoader> logger)
         {
             _fileHasher = fileHasher;
+            _logger = logger;
         }
 
-        public async Task<FileInformation> Load(IFile file)
+        public async ValueTask<MemoryStream> LoadFileToMemory(IFile file)
         {
+            MemoryStream targetStream;
+            using (var fileStream = file.OpenRead())
+            {
+                targetStream = new MemoryStream((int)fileStream.Length);
+                await fileStream.CopyToAsync(targetStream);
+            }
+
+            targetStream.Position = 0;
+            return targetStream;
+        }
+
+        public async ValueTask<FileInformation> Load(IFile file)
+        {
+            _logger.LogDebug("Load file {filename} into memory", file.Filename);
+
+            using var stream = await LoadFileToMemory(file);
+            stream.Position = 0;
+            return Load(file, stream);
+        }
+
+        public FileInformation Load(IFile file, Stream stream)
+        {
+            _logger.LogDebug("Load file information of {filename}", file.Filename);
+
             PhotoProperties? properties;
             Hash fileHash;
             DateTimeOffset fileCreatedOn;
 
-            MemoryStream targetStream;
-            using (var fileStream = file.OpenRead())
+            fileCreatedOn = GetCreationDate(stream, file);
+
+            stream.Position = 0;
+            try
             {
-                targetStream = new MemoryStream((int) fileStream.Length);
-                await fileStream.CopyToAsync(targetStream);
+                using var bmp = new Bitmap(stream);
+
+                var width = bmp.Width;
+                var height = bmp.Height;
+                var bmpHash = new Hash(BitmapHash.Compute(bmp));
+
+                properties = new PhotoProperties(bmpHash, width, height);
+            }
+            catch (Exception)
+            {
+                properties = null;
             }
 
-            using (targetStream)
-            {
-                targetStream.Position = 0;
-                fileCreatedOn = GetCreationDate(targetStream, file);
+            stream.Position = 0;
+            fileHash = _fileHasher.ComputeHash(stream);
 
-                targetStream.Position = 0;
-                try
-                {
-                    using var bmp = new Bitmap(targetStream);
+            var fileInformation =  new FileInformation(file.Filename, file.CreatedOn, file.ModifiedOn, fileHash, file.Length,
+                           fileCreatedOn, properties, file.RelativeFilename);
+            _logger.LogDebug("FileInformation of file {filename} loaded: {@data}", file.Filename, fileInformation);
 
-                    var width = bmp.Width;
-                    var height = bmp.Height;
-                    var bmpHash = new Hash(BitmapHash.Compute(bmp));
-
-                    properties = new PhotoProperties(bmpHash, width, height);
-                }
-                catch (Exception)
-                {
-                    properties = null;
-                }
-
-                targetStream.Position = 0;
-                fileHash = _fileHasher.ComputeHash(targetStream);
-            }
-
-            return new FileInformation(file.Filename, file.CreatedOn, file.ModifiedOn, fileHash, file.Length,
-                                       fileCreatedOn, properties, file.RelativeFilename);
+            return fileInformation;
         }
 
         private static bool TrySelectDateTaken(IReadOnlyList<MetadataExtractor.Directory> metadata, out DateTime dateTime)

@@ -10,16 +10,24 @@ using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Extensions;
 using PhotoFolder.Infrastructure.Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PhotoFolder.Application.IntegrationTests.Workers
 {
     public class CheckFilesWorkerTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public CheckFilesWorkerTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public async Task TestCheckFiles()
         {
             // arrange
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.CleanFileBase);
 
             var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
             var photoDirectory = await loader.Load(DefaultPhotoFolder.PhotoFolderPath);
@@ -40,7 +48,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
             const string file = "hanszimmer_htcu11.jpg";
             const string correctLocation = "2019/03.30/hanszimmer_htcu11.jpg";
 
-            var app = await DefaultPhotoFolder.Initialize(new Dictionary<string, string> {{$"test/{file}", file}});
+            var app = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string> {{$"test/{file}", file}});
 
             var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
             var photoDirectory = await loader.Load(DefaultPhotoFolder.PhotoFolderPath);
@@ -68,7 +76,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
             const string correctLocation = "2019/03.30/hanszimmer_htcu11.jpg";
             var existingFolder = $"{correctFolder} - Hans Zimmer";
 
-            var app = await DefaultPhotoFolder.Initialize(new Dictionary<string, string>
+            var app = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string>
             {
                 {$"test/{file}", file},
                 { $"{existingFolder}/test.jpg", "egypt_sonyz3.jpg"}
@@ -93,7 +101,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         public async Task TestFileDuplicate()
         {
             // arrange
-            var app = await DefaultPhotoFolder.Initialize(new Dictionary<string, string>
+            var app = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string>
             {
                 {"cats/lando/lando.jpg", "lando_sonyalpha.jpg"},
                 {"2018/01.20/lando_sonyalpha.jpg", "lando_sonyalpha.jpg"}
@@ -119,7 +127,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         public async Task TestFileSimilar()
         {
             // arrange
-            var app = await DefaultPhotoFolder.Initialize(new Dictionary<string, string>
+            var app = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string>
             {
                 {"2010/05.09 - Flora Wanderung/flora_sonyalpha_compressed.jpg", "flora_sonyalpha_compressed.jpg"},
                 {"2010/05.09 - Flora Wanderung/flora_sonyalpha.jpg", "flora_sonyalpha.jpg"}
@@ -146,7 +154,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         public async Task TestFormerlyDeletedFilesAreNotShown()
         {
             // arrange
-            var app = await DefaultPhotoFolder.Initialize(DefaultPhotoFolder.CleanFileBase);
+            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.CleanFileBase);
 
             var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
             var photoDirectory = await loader.Load(DefaultPhotoFolder.PhotoFolderPath);

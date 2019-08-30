@@ -27,7 +27,6 @@ namespace PhotoFolder.Wpf.ViewModels
         private readonly IWindowService _windowService;
 
         private AsyncDelegateCommand? _openFilesCommand;
-
         private AsyncDelegateCommand? _openFolderCommand;
         private IPhotoDirectory? _photoDirectory;
 

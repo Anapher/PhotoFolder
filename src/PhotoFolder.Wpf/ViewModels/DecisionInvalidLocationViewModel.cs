@@ -212,27 +212,6 @@ namespace PhotoFolder.Wpf.ViewModels
             SelectedSuggestion = Suggestions.FirstOrDefault(x => x.Filename == Decision.TargetPath) ?? Suggestions.First();
         }
 
-        private DelegateCommand GetApplyCommand(Action<ApplyDecisionSettings> applyAction)
-        {
-            return new DelegateCommand(() =>
-            {
-                applyAction(new ApplyDecisionSettings(x =>
-                {
-                    if (Issue == null) throw new InvalidOperationException();
-                    if (NewPath == null) throw new InvalidOperationException();
-
-                    if (x is InvalidLocationFileDecisionViewModel viewModel && x.Issue is InvalidFileLocationIssue issue)
-                    {
-                        if (issue.DirectoryPathTemplate.ToString() != Issue.DirectoryPathTemplate.ToString()) return;
-
-                        viewModel.TargetPath = issue.File == Issue.File
-                            ? NewPath
-                            : _pathUtils.Combine(_pathUtils.GetDirectoryName(NewPath), issue.CorrectFilename);
-                    }
-                }));
-            }).ObservesCanExecute(() => IsNewPathValid);
-        }
-
         private void PathVariableOnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             PathConfigurator = PathConfigurator.Configure;

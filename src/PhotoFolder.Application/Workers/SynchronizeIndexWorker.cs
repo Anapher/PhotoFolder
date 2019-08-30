@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PhotoFolder.Application.Dto.WorkerRequests;
+﻿using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Dto.WorkerResponses;
 using PhotoFolder.Application.Dto.WorkerStates;
 using PhotoFolder.Application.Interfaces.Workers;
@@ -18,7 +17,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PhotoFolder.Core.Domain;
+using PhotoFolder.Core.Interfaces.Gateways;
+using PhotoFolder.Core.Interfaces;
 using PhotoFolder.Core.Dto.UseCaseResponses;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PhotoFolder.Application.Workers
 {
@@ -77,84 +79,60 @@ namespace PhotoFolder.Application.Workers
                     completelyRemovedFiles.Add(removedFile);
             }
 
-            IImmutableList<FileInformation> removedFilesInformation = removedFiles.Where(x => x.RelativeFilename != null).Select(x =>
-                indexedFiles.First(y => y.GetFileByFilename(x.RelativeFilename!) != null).ToFileInformation(x.RelativeFilename!, directory)).ToImmutableList();
-            var deletedFiles = directory.DeletedFiles.Files;
+            IImmutableList<FileInformation> removedFileInformation = removedFiles
+                .Select(x => GetFileInformationFromPath(x.RelativeFilename!, indexedFiles, directory))
+                .ToImmutableList();
+
+            var formerlyDeletedFiles = directory.DeletedFiles.Files;
             var deletedFilesLock = new object();
 
             State.Status = SynchronizeIndexStatus.IndexingNewFiles;
             State.TotalFiles = newFiles.Count;
 
             var processedFilesCount = 0;
-
-            void FileProcessed()
-            {
-                var processedFiles = Interlocked.Increment(ref processedFilesCount);
-                State.ProcessedFiles = processedFiles;
-                State.Progress = (double) processedFiles / newFiles.Count;
-            }
-
             var removedFilesLock = new object();
+            var stateLock = new object();
 
             await TaskCombinators.ThrottledAsync(newFiles, async (newFile, _) =>
             {
-                var action = _serviceProvider.GetRequiredService<IAddFileToIndexUseCase>();
-
-                AddFileToIndexResponse? response;
-                try
-                {
-                    response = await action.Handle(new AddFileToIndexRequest(newFile.Filename, directory));
-                }
-                catch (Exception e)
-                {
-                    if (e.GetType().Name.Equals("DbUpdateException"))
-                    {
-                        response = await action.Handle(new AddFileToIndexRequest(newFile.Filename, directory));
-                    }
-                    else throw;
-                }
+                var (action, response) = await IndexFile(newFile.Filename, directory);
 
                 if (action.HasError)
                 {
-                    State.Errors.Add(newFile.Filename, action.Error!);
+                    lock (stateLock)
+                    {
+                        State.Errors.Add(newFile.Filename, action.Error!);
+                    }
                     return;
                 }
 
                 var (indexedFile, fileLocation) = response!;
 
-                // remove from deleted files
-                if (deletedFiles.ContainsKey(indexedFile.Hash))
+                // remove from formerly deleted files
+                if (formerlyDeletedFiles.ContainsKey(indexedFile.Hash))
                     lock (deletedFilesLock)
                     {
-                        deletedFiles = deletedFiles.Remove(indexedFile.Hash);
+                        formerlyDeletedFiles = formerlyDeletedFiles.Remove(indexedFile.Hash);
                     }
 
                 FileOperation fileOperation;
 
                 // get operation
-                if (removedFiles.Any())
+                var removedFile = removedFileInformation.FirstOrDefault(x => _fileContentComparer.Equals(x, indexedFile));
+                if (removedFile != null)
                 {
-                    var removedFile = removedFilesInformation.FirstOrDefault(x => _fileContentComparer.Equals(x, indexedFile));
-
-                    if (removedFile != null)
+                    lock (removedFilesLock)
                     {
-                        lock (removedFilesLock)
-                        {
-                            removedFilesInformation = removedFilesInformation.Remove(removedFile);
-                        }
-
-                        if (directory.PathComparer.Equals(fileLocation.RelativeFilename, removedFile.RelativeFilename!))
-                            fileOperation = FileOperation.FileChanged(fileLocation, ToFileReference(removedFile));
-                        else
-                            fileOperation = FileOperation.FileMoved(fileLocation, ToFileReference(removedFile));
+                        removedFileInformation = removedFileInformation.Remove(removedFile);
                     }
+
+                    if (directory.PathComparer.Equals(fileLocation.RelativeFilename, removedFile.RelativeFilename!))
+                        fileOperation = FileOperation.FileChanged(fileLocation, ToFileReference(removedFile));
                     else
-                        fileOperation = FileOperation.NewFile(fileLocation);
+                        fileOperation = FileOperation.FileMoved(fileLocation, ToFileReference(removedFile));
                 }
                 else
-                {
                     fileOperation = FileOperation.NewFile(fileLocation);
-                }
 
                 using (var context = directory.GetDataContext())
                 {
@@ -162,10 +140,12 @@ namespace PhotoFolder.Application.Workers
                     operations.Add(fileOperation);
                 }
 
-                FileProcessed();
-            }, CancellationToken.None);
+                var processedFiles = Interlocked.Increment(ref processedFilesCount);
+                State.ProcessedFiles = processedFiles;
+                State.Progress = (double)processedFiles / newFiles.Count;
+            }, CancellationToken.None); // do not use cancellation token here as a cancellation would destroy all move/change operations as all files were already removed
 
-            foreach (var removedFile in removedFilesInformation)
+            foreach (var removedFile in removedFileInformation)
             {
                 var operation = FileOperation.FileRemoved(ToFileReference(removedFile));
                 await dataContext.OperationRepository.Add(operation);
@@ -176,12 +156,37 @@ namespace PhotoFolder.Application.Workers
                 // WARN: if a file changes, the previous file is not marked as deleted. Idk if that is actually desired
                 if (completelyRemovedFiles.Any(x => x.Filename == removedFile.Filename))
                 {
-                    deletedFiles = deletedFiles.Add(removedFile.Hash.ToString(), new DeletedFileInfo(removedFile.RelativeFilename!, removedFile.Length, removedFile.Hash, removedFile.PhotoProperties, removedFile.FileCreatedOn, DateTimeOffset.UtcNow));
+                    formerlyDeletedFiles = formerlyDeletedFiles.Add(removedFile.Hash.ToString(), new DeletedFileInfo(removedFile.RelativeFilename!, removedFile.Length, removedFile.Hash, removedFile.PhotoProperties, removedFile.FileCreatedOn, DateTimeOffset.UtcNow));
                 }
             }
 
-            await directory.DeletedFiles.Update(deletedFiles);
+            await directory.DeletedFiles.Update(formerlyDeletedFiles);
             return new SynchronizeIndexResponse(operations.ToList());
+        }
+
+        private async Task<(IUseCaseErrors, AddFileToIndexResponse?)> IndexFile(string filename, IPhotoDirectory photoDirectory)
+        {
+            var action = _serviceProvider.GetRequiredService<IAddFileToIndexUseCase>();
+
+            AddFileToIndexResponse? response;
+            try
+            {
+                response = await action.Handle(new AddFileToIndexRequest(filename, photoDirectory));
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name.Equals("DbUpdateException"))
+                {
+                    response = await action.Handle(new AddFileToIndexRequest(filename, photoDirectory));
+                }
+                else throw;
+            }
+
+            return (action, response);
+        }
+        private FileInformation GetFileInformationFromPath(string relativeFilename, IReadOnlyList<IndexedFile> indexedFiles, IPhotoDirectory photoDirectory)
+        {
+            return indexedFiles.First(y => y.HasPath(relativeFilename)).ToFileInformation(relativeFilename, photoDirectory);
         }
 
         private static IFileReference ToFileReference(FileInformation fileInformation)
