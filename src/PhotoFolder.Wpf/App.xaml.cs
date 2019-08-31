@@ -81,6 +81,8 @@ namespace PhotoFolder.Wpf
                 IfAlreadyRegistered.AppendNewImplementation);
             drylocContainer.Register<IFileIntegrityValidator, InvalidLocationFileIntegrityValidator>(Reuse.Singleton, null, null,
                 IfAlreadyRegistered.AppendNewImplementation);
+            drylocContainer.Register<IFileIntegrityValidator, FormerlyDeletedValidator>(Reuse.Singleton, null, null,
+                IfAlreadyRegistered.AppendNewImplementation);
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)

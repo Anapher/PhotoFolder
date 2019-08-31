@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoFolder.Wpf", "src\Phot
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoFolder.Wpf.Tests", "test\PhotoFolder.Wpf.Tests\PhotoFolder.Wpf.Tests.csproj", "{D0087418-2A35-409B-9562-4F9A4CE6CEA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoFolder.Application.IntegrationTests", "test\PhotoFolder.Application.IntegrationTests\PhotoFolder.Application.IntegrationTests.csproj", "{CA8808AA-FFD5-4167-9B32-9383ED2CA814}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoFolder.Application.IntegrationTests", "test\PhotoFolder.Application.IntegrationTests\PhotoFolder.Application.IntegrationTests.csproj", "{CA8808AA-FFD5-4167-9B32-9383ED2CA814}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -24,6 +24,9 @@
             <DataTemplate DataType="{x:Type models:SimilarFileDecisionViewModel}">
                 <ContentControl mvvm:RegionManager.RegionContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Context}" mvvm:RegionManager.RegionName="{x:Static wpf:RegionNames.SimilarFilesDecision}" />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type models:FormerlyDeletedFileDecisionViewModel}">
+                <ContentControl mvvm:RegionManager.RegionContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Context}" mvvm:RegionManager.RegionName="{x:Static wpf:RegionNames.FormerlyDeletedDecision}" />
+            </DataTemplate>
         </ContentControl.Resources>
     </ContentControl>
 </UserControl>

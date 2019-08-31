@@ -6,12 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="clr-namespace:PhotoFolder.Wpf.ViewModels.Models"
+    xmlns:models1="clr-namespace:PhotoFolder.Wpf.Converter.Models"
     x:Name="Root"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <converters:DeleteFilesDecisionCountConverter x:Key="DeleteFilesDecisionCountConverter" />
+        <models1:DeleteFilesDecisionCountConverter x:Key="DeleteFilesDecisionCountConverter" />
         <converters:IsStringEmptyConverter x:Key="IsStringEmptyConverter" />
     </UserControl.Resources>
     <ContentControl Content="{Binding ElementName=Root, Path=DecisionViewModel}">

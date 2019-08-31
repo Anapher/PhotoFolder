@@ -5,6 +5,7 @@
     xmlns:converters="clr-namespace:PhotoFolder.Wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modelConverter="clr-namespace:PhotoFolder.Wpf.Converter.Models"
     xmlns:models="clr-namespace:PhotoFolder.Wpf.ViewModels.Models"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
@@ -15,6 +16,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:FormatBytesConverter x:Key="FormatBytesConverter" />
+        <modelConverter:GetFileInformationPathConverter x:Key="GetFileInformationPathConverter" />
 
         <Thickness x:Key="PropertiesMargin" Top="4" />
         <GridLength x:Key="PropertiesLabelWidth">70</GridLength>
@@ -55,7 +57,7 @@
                 <TextBlock Text="Filename:" />
                 <TextBlock
                     Grid.Column="1"
-                    Text="{Binding Selection.Decision.Issue.File.RelativeFilename}"
+                    Text="{Binding Selection.Decision.Issue.File, Converter={StaticResource GetFileInformationPathConverter}}"
                     TextTrimming="CharacterEllipsis" />
             </Grid>
             <Grid Margin="{StaticResource PropertiesMargin}">
@@ -171,7 +173,7 @@
                                 Grid.Column="1"
                                 Margin="8,0,0,0"
                                 TextWrapping="Wrap">
-                                <Run Foreground="#d35400" Text="{Binding File.RelativeFilename, Mode=OneWay}" />
+                                <Run Foreground="#d35400" Text="{Binding File, Converter={StaticResource GetFileInformationPathConverter}, Mode=OneWay}" />
                                 <Run Text="to" />
                                 <Run Foreground="#2980b9" Text="{Binding TargetPath, Mode=OneWay}" />
                             </TextBlock>
@@ -200,7 +202,7 @@
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="8,0,0,0"
-                                Text="{Binding File.RelativeFilename}"
+                                Text="{Binding File, Converter={StaticResource GetFileInformationPathConverter}}"
                                 TextWrapping="Wrap" />
                         </Grid>
                     </DataTemplate>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Humanizer;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Mvvm;
@@ -42,13 +43,16 @@ namespace PhotoFolder.Wpf.ViewModels
             switch (viewModel.Decision.Issue)
             {
                 case InvalidFileLocationIssue invalidLocation:
-                    Title = $"Invalid location ({invalidLocation.File.RelativeFilename})";
+                    Title = $"Invalid location ({invalidLocation.File.RelativeFilename ?? invalidLocation.File.Filename})";
                     break;
                 case DuplicateFilesIssue duplicateFiles:
                     Title = $"{duplicateFiles.RelevantFiles.Count() + 1} duplicate files found (hash: {duplicateFiles.File.Hash})";
                     break;
                 case SimilarFilesIssue similarFiles:
                     Title = $"{similarFiles.RelevantFiles.Count() + 1} similar files found";
+                    break;
+                case FormerlyDeletedIssue formerlyDeleted:
+                    Title = $"File was deleted {formerlyDeleted.DeletedFileInfo.DeletedAt.Humanize()}. Import it again?";
                     break;
             }
         }

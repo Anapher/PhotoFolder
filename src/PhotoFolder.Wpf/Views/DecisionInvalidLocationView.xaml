@@ -5,6 +5,7 @@
     xmlns:converter="clr-namespace:PhotoFolder.Wpf.Converter"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modelConverter="clr-namespace:PhotoFolder.Wpf.Converter.Models"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
     Width="800"
@@ -16,6 +17,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <converter:EnumBooleanConverter x:Key="EnumBooleanConverter" />
+        <modelConverter:GetFileInformationPathConverter x:Key="GetFileInformationPathConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -60,7 +62,7 @@
                 <TextBlock
                     Margin="0,2,0,0"
                     FontSize="14"
-                    Text="{Binding Issue.File.RelativeFilename}" />
+                    Text="{Binding Issue.File, Converter={StaticResource GetFileInformationPathConverter}}" />
             </StackPanel>
             <StackPanel
                 Grid.Row="2"

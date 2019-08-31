@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:listViewLayoutManager="clr-namespace:PhotoFolder.Wpf.Extensions.ListViewLayoutManager"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modelConverter="clr-namespace:PhotoFolder.Wpf.Converter.Models"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
     Width="600"
@@ -17,6 +18,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:IsStringNotEmptyConverter x:Key="IsStringNotEmptyConverter" />
+        <modelConverter:GetFileInformationPathConverter x:Key="GetFileInformationPathConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -56,18 +58,7 @@
                     <GridViewColumn listViewLayoutManager:ProportionalColumn.Width="1" Header="File">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock>
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value="{Binding Value.RelativeFilename}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Value.RelativeFilename}" Value="{x:Null}">
-                                                    <Setter Property="Text" Value="{Binding Value.Filename}" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
+                                <TextBlock Text="{Binding Value, Converter={StaticResource GetFileInformationPathConverter}}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

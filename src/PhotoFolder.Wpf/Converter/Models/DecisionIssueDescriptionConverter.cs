@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
+using Humanizer;
+using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Wpf.ViewModels.Models;
 
-namespace PhotoFolder.Wpf.Converters
+namespace PhotoFolder.Wpf.Converter.Models
 {
     public class DecisionIssueDescriptionConverter : IValueConverter
     {
@@ -17,6 +19,9 @@ namespace PhotoFolder.Wpf.Converters
 
             if (value is SimilarFileDecisionViewModel similarFile)
                 return similarFile.Issue.File.RelativeFilename != null ? "Similar Files" : "Import Similar File";
+
+            if (value is FormerlyDeletedFileDecisionViewModel formerlyDeletedFile)
+                return $"File deleted {((FormerlyDeletedIssue) formerlyDeletedFile.Issue).DeletedFileInfo.DeletedAt.Humanize()}";
 
             return string.Empty;
         }

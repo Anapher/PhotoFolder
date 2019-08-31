@@ -5,6 +5,7 @@
     xmlns:converters="clr-namespace:PhotoFolder.Wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modelConverter="clr-namespace:PhotoFolder.Wpf.Converter.Models"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
     Width="920"
@@ -16,6 +17,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:FormatBytesConverter x:Key="FormatBytesConverter" />
+        <modelConverter:GetFileInformationPathConverter x:Key="GetFileInformationPathConverter" />
     </UserControl.Resources>
     <ListView
         Margin="4"
@@ -82,18 +84,10 @@
                                 <TextBlock Foreground="White" Text="Import" />
                             </Border>
                         </StackPanel>
-                        <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="{Binding File.Value.RelativeFilename}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding File.Value.RelativeFilename}" Value="{x:Null}">
-                                            <Setter Property="Text" Value="{Binding File.Value.Filename}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            HorizontalAlignment="Center"
+                            Text="{Binding File.Value, Converter={StaticResource GetFileInformationPathConverter}}" />
                         <TextBlock
                             Margin="0,4,0,0"
                             HorizontalAlignment="Center"

@@ -25,6 +25,7 @@ namespace PhotoFolder.Wpf
             regionManager.RegisterViewWithRegion(RegionNames.InvalidLocationDecision, typeof(DecisionInvalidLocationView));
             regionManager.RegisterViewWithRegion(RegionNames.DuplicateFilesDecision, typeof(DecisionDuplicateFilesView));
             regionManager.RegisterViewWithRegion(RegionNames.SimilarFilesDecision, typeof(DecisionSimilarFilesView));
+            regionManager.RegisterViewWithRegion(RegionNames.FormerlyDeletedDecision, typeof(DecisionFormerlyDeletedView));
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
