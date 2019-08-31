@@ -8,6 +8,7 @@ using PhotoFolder.Core.Dto.UseCaseRequests;
 using PhotoFolder.Core.Interfaces.UseCases;
 using PhotoFolder.Core.Specifications.FileInformation;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -43,11 +44,11 @@ namespace PhotoFolder.Application.Workers
 
             State.Status = CheckFilesStatus.Querying;
 
-            var result = new List<IFileIssue>();
-            for (int i = 0; i < fileInfos.Count; i++)
-            {
-                var fileInformation = fileInfos[i];
+            var result = new ConcurrentBag<IFileIssue>();
+            var counter = -1;
 
+            await TaskCombinators.ThrottledAsync(fileInfos, async (fileInformation, token) =>
+            {
                 var useCase = _serviceProvider.GetRequiredService<ICheckFileIntegrityUseCase>();
                 var response = await useCase.Handle(new CheckFileIntegrityRequest(fileInformation, indexedFiles, directory));
                 if (useCase.HasError)
@@ -56,11 +57,12 @@ namespace PhotoFolder.Application.Workers
                 }
                 else
                 {
-                    result.AddRange(response!.Issues);
+                    foreach (var fileIssue in response!.Issues)
+                        result.Add(fileIssue);
                 }
 
-                State.Progress = (float) i / indexedFiles.Count;
-            }
+                State.Progress = (double) Interlocked.Increment(ref counter) / indexedFiles.Count;
+            }, cancellationToken);
 
             return new FileCheckReport(result.Distinct(new EqualityComparerByValue<IFileIssue, string>(x => x.Identity)).ToList());
         }

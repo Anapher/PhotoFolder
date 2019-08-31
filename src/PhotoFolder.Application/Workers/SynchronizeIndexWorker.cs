@@ -142,7 +142,7 @@ namespace PhotoFolder.Application.Workers
 
                 var processedFiles = Interlocked.Increment(ref processedFilesCount);
                 State.ProcessedFiles = processedFiles;
-                State.Progress = (double)processedFiles / newFiles.Count;
+                State.Progress = (double) processedFiles / newFiles.Count;
             }, CancellationToken.None); // do not use cancellation token here as a cancellation would destroy all move/change operations as all files were already removed
 
             foreach (var removedFile in removedFileInformation)

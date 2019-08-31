@@ -27,7 +27,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
         public async Task TestLoadInformationFromImage(TestImage image)
         {
             var file = new Mock<IFile>();
-            file.Setup(x => x.OpenRead()).Returns(() => image.GetStream());
+            file.Setup(x => x.OpenRead()).Returns(image.GetStream);
 
             var loader = new FileInformationLoader(new SHA256FileHasher(), _logger);
             var result = await loader.Load(file.Object);

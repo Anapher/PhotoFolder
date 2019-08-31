@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Dto.WorkerResponses;
 using PhotoFolder.Application.Dto.WorkerStates;
 using PhotoFolder.Application.Interfaces.Workers;
+using PhotoFolder.Application.Utilities;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
 
@@ -27,23 +28,29 @@ namespace PhotoFolder.Application.Workers
         {
             State.Status = ImportFilesStatus.Scanning;
 
-            var fileInfos = new List<FileInformation>(request.Files.Count);
-            for (var i = 0; i < request.Files.Count; i++)
+            var fileInfos = new FileInformation[request.Files.Count];
+            var counter = -1; // as we always increment and the first index is zero
+
+            await TaskCombinators.ThrottledAsync(request.Files, async (filename, _) =>
             {
-                var filename = request.Files[i];
-                var file = request.Directory.GetFile(filename);
-                if (file == null) continue; // not found
+                var index = Interlocked.Increment(ref counter);
+                try
+                {
+                    var file = request.Directory.GetFile(filename);
+                    if (file == null) return; // not found
 
-                var fileInfo = await _fileInformationLoader.Load(file);
-                fileInfos.Add(fileInfo);
-
-                State.Progress = (double) i / request.Files.Count;
-            }
+                    fileInfos[index] = await _fileInformationLoader.Load(file);
+                }
+                finally
+                {
+                    State.Progress = (double) counter / request.Files.Count;
+                }
+            }, cancellationToken);
 
             State.Status = ImportFilesStatus.Querying;
             _checkFilesWorker.State.PropertyChanged += (_, __) => State.Progress = _checkFilesWorker.State.Progress;
 
-            return await _checkFilesWorker.Execute(new CheckFilesRequest(fileInfos, request.Directory));
+            return await _checkFilesWorker.Execute(new CheckFilesRequest(fileInfos.Where(x => x != null).ToList(), request.Directory), cancellationToken);
         }
     }
 }
