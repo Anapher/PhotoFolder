@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using PhotoFolder.Infrastructure.Shared;

@@ -23,15 +23,54 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         }
 
         [Fact]
-        public Task TestCreateDatabaseAndSynchronize()
+        public async Task TestCreateDatabaseAndSynchronize()
         {
-            return DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
+            await using var _ = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
         }
 
         [Fact]
-        public Task TestCreateDatabaseAndSynchronizeDuplicates()
+        public async Task TestSynchronizeNonPhotoFile()
         {
-            return DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string>
+            await using var _ = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string> {{"2019/23/test.jpg", "textfile.txt"}});
+        }
+
+        [Fact]
+        public async Task TestNonPhotoFileHasPhotoPropertiesNull()
+        {
+            await using var app = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string> { { "2019/23/test.jpg", "textfile.txt" } });
+            var photoFolderPath = DefaultPhotoFolder.PhotoFolderPath;
+
+            var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
+            var photoDirectory = await loader.Load(photoFolderPath);
+
+            await using var context = photoDirectory.GetDataContext();
+
+            var files = await context.FileRepository.GetAll();
+            var file = files.Single();
+
+            Assert.Null(file.PhotoProperties);
+        }
+
+        [Fact]
+        public async Task TestAddDuplicateNonPhotoFile()
+        {
+            await using var app = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string> { { "2019/23/test.jpg", "textfile.txt" } });
+
+            var photoFolderPath = DefaultPhotoFolder.PhotoFolderPath;
+            app.MockFileSystem.AddFileFromEmbeddedResource(Path.Combine(photoFolderPath, "textfile.jpg"), Assembly.GetExecutingAssembly(),
+                "PhotoFolder.Application.IntegrationTests.Resources.textfile.txt");
+
+            var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
+            var photoDirectory = await loader.Load(photoFolderPath);
+
+            var worker = app.Container.Resolve<ISynchronizeIndexWorker>();
+            var response = await worker.Execute(new SynchronizeIndexRequest(photoDirectory));
+        }
+
+        [Fact]
+        public async Task TestCreateDatabaseAndSynchronizeDuplicates()
+        {
+            await using var _ = await DefaultPhotoFolder.Initialize(_output, new Dictionary<string, string>
             {
                 {"egypt_sonyz3.jpg", "egypt_sonyz3.jpg"}, {"asd/asd.jpg", "egypt_sonyz3.jpg"}
             });
@@ -40,7 +79,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         [Fact]
         public async Task TestSynchronizeWithoutChanges()
         {
-            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
+            await using var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
 
             var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
             var photoDirectory = await loader.Load(DefaultPhotoFolder.PhotoFolderPath);
@@ -54,7 +93,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         [Fact]
         public async Task TestSynchronizeExistingDatabase()
         {
-            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
+            await using var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
             var photoFolderPath = DefaultPhotoFolder.PhotoFolderPath;
 
             app.MockFileSystem.RemoveFile(Path.Combine(photoFolderPath, "egypt_sonyz3.jpg"));
@@ -88,7 +127,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
         [Fact]
         public async Task<ApplicationContext> TestFileMoved()
         {
-            var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
+            await using var app = await DefaultPhotoFolder.Initialize(_output, DefaultPhotoFolder.DefaultFileBase);
             var photoFolderPath = DefaultPhotoFolder.PhotoFolderPath;
 
             var newDirectory = Path.Combine(photoFolderPath, "2019\\18");

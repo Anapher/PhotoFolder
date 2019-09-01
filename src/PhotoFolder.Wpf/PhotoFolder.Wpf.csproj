@@ -9,12 +9,6 @@
   <Import Project="../nullable.props" />
 
   <ItemGroup>
-    <None Remove="Views\DecisionFormerlyDeletedView.xaml" />
-    <None Remove="Views\Decision\OperationView.xaml" />
-    <None Remove="Views\ReviewOperationsDialog.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="DryIoc.Microsoft.DependencyInjection" Version="3.0.3" />
     <PackageReference Include="Humanizer.Core" Version="2.6.2" />
     <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0455" />

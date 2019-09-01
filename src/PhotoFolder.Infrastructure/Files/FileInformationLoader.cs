@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using PhotoFolder.Core.Dto.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace PhotoFolder.Infrastructure.Files
 {
@@ -18,17 +19,19 @@ namespace PhotoFolder.Infrastructure.Files
     {
         private readonly IFileHasher _fileHasher;
         private readonly ILogger<FileInformationLoader> _logger;
+        private readonly InfrastructureOptions _options;
 
-        public FileInformationLoader(IFileHasher fileHasher, ILogger<FileInformationLoader> logger)
+        public FileInformationLoader(IFileHasher fileHasher, ILogger<FileInformationLoader> logger, IOptions<InfrastructureOptions> options)
         {
             _fileHasher = fileHasher;
             _logger = logger;
+            _options = options.Value;
         }
 
         public async ValueTask<MemoryStream> LoadFileToMemory(IFile file)
         {
             MemoryStream targetStream;
-            using (var fileStream = file.OpenRead())
+            await using (var fileStream = file.OpenRead())
             {
                 targetStream = new MemoryStream((int)fileStream.Length);
                 await fileStream.CopyToAsync(targetStream);
@@ -40,11 +43,22 @@ namespace PhotoFolder.Infrastructure.Files
 
         public async ValueTask<FileInformation> Load(IFile file)
         {
+            if (file.Length > _options.LargeFileMargin)
+                return await LoadLargeFile(file);
+
             _logger.LogDebug("Load file {filename} into memory", file.Filename);
 
-            using var stream = await LoadFileToMemory(file);
+            await using var stream = await LoadFileToMemory(file);
             stream.Position = 0;
             return Load(file, stream);
+        }
+
+        private async ValueTask<FileInformation> LoadLargeFile(IFile file)
+        {
+            await using var fileStream = file.OpenRead();
+            var hash = _fileHasher.ComputeHash(fileStream);
+
+            return new FileInformation(file.Filename, file.CreatedOn, file.ModifiedOn, hash, file.Length, file.CreatedOn, null, file.RelativeFilename);
         }
 
         public FileInformation Load(IFile file, Stream stream)

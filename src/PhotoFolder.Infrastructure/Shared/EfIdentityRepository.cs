@@ -12,7 +12,7 @@ namespace PhotoFolder.Infrastructure.Shared
         {
         }
 
-        public virtual Task<T?> GetById(int id)
+        public virtual ValueTask<T?> GetById(int id)
         {
             return _appDbContext.Set<T>().FindAsync(id);
         }

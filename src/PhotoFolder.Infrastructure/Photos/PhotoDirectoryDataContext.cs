@@ -1,4 +1,5 @@
-﻿using PhotoFolder.Core.Interfaces.Gateways;
+﻿using System.Threading.Tasks;
+using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Gateways.Repositories;
 using PhotoFolder.Infrastructure.Data;
 using PhotoFolder.Infrastructure.Data.Repositories;
@@ -21,5 +22,7 @@ namespace PhotoFolder.Infrastructure.Photos
         {
             _context.Dispose();
         }
+
+        public ValueTask DisposeAsync() => _context.DisposeAsync();
     }
 }

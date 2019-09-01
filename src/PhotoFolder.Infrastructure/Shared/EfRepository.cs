@@ -19,36 +19,36 @@ namespace PhotoFolder.Infrastructure.Shared
             _appDbContext = appDbContext;
         }
 
-        public async Task<IReadOnlyList<T>> GetAll()
+        public virtual async Task<IReadOnlyList<T>> GetAll()
         {
             return await _appDbContext.Set<T>().ToListAsync();
         }
 
-        public async Task<T> Add(T entity)
+        public virtual async Task<T> Add(T entity)
         {
             _appDbContext.Set<T>().Add(entity);
             await _appDbContext.SaveChangesAsync();
             return entity;
         }
 
-        public Task Update(T entity)
+        public virtual Task Update(T entity)
         {
             _appDbContext.Entry(entity).State = EntityState.Modified;
             return _appDbContext.SaveChangesAsync();
         }
 
-        public Task Delete(T entity)
+        public virtual Task Delete(T entity)
         {
             _appDbContext.Set<T>().Remove(entity);
             return _appDbContext.SaveChangesAsync();
         }
 
-        public Task<T?> FirstOrDefaultBySpecs(params ISpecification<T>[] specs)
+        public virtual Task<T?> FirstOrDefaultBySpecs(params ISpecification<T>[] specs)
         {
             return QuerySpecs(specs).FirstOrDefaultAsync();
         }
 
-        public async Task<IReadOnlyList<T>> GetAllBySpecs(params ISpecification<T>[] specs)
+        public virtual async Task<IReadOnlyList<T>> GetAllBySpecs(params ISpecification<T>[] specs)
         {
             return await QuerySpecs(specs).ToListAsync();
         }

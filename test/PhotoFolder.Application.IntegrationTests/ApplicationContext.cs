@@ -2,6 +2,7 @@
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Reflection;
+using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
@@ -18,18 +19,18 @@ using Xunit.Abstractions;
 
 namespace PhotoFolder.Application.IntegrationTests
 {
-    public class ApplicationContext
+    public class ApplicationContext : IAsyncDisposable
     {
-        public ApplicationContext(IContainer container, SqliteConnection sqliteConnection, MockFileSystem mockFileSystem)
+        public ApplicationContext(IContainer container, MockFileSystem mockFileSystem, SqliteConnection sqliteConnection)
         {
             Container = container;
-            SqliteConnection = sqliteConnection;
             MockFileSystem = mockFileSystem;
+            SqliteConnection = sqliteConnection;
         }
 
         public IContainer Container { get; }
-        public SqliteConnection SqliteConnection { get; }
         public MockFileSystem MockFileSystem { get; }
+        public SqliteConnection SqliteConnection { get; }
 
         public void AddResourceFile(string path, string resourceName)
         {
@@ -37,7 +38,7 @@ namespace PhotoFolder.Application.IntegrationTests
                 $"PhotoFolder.Application.IntegrationTests.Resources.{resourceName}");
         }
 
-        public static ApplicationContext Initialize(ITestOutputHelper testOutput)
+        public static async Task<ApplicationContext> Initialize(ITestOutputHelper testOutput)
         {
             var fileSystem = new MockFileSystem();
 
@@ -55,7 +56,7 @@ namespace PhotoFolder.Application.IntegrationTests
 
             var logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.TestOutput(testOutput, Serilog.Events.LogEventLevel.Verbose)
+                .WriteTo.TestOutput(testOutput)
                 .CreateLogger()
                 .ForContext<ApplicationContext>();
 
@@ -66,8 +67,8 @@ namespace PhotoFolder.Application.IntegrationTests
 
             var dbName = Guid.NewGuid().ToString("N");
             var connectionString = $"DataSource={dbName};mode=memory;cache=shared";
-            var connection = new SqliteConnection(connectionString);
-            connection.Open();
+            var connection = new SqliteConnection(connectionString); // very important, as the database is destroyed when no connection is active
+            await connection.OpenAsync();
 
             var mockDbContextBuilder = new Mock<IAppDbContextOptionsBuilder>();
             var contextBuilder = new DbContextOptionsBuilder<AppDbContext>();
@@ -78,7 +79,12 @@ namespace PhotoFolder.Application.IntegrationTests
 
             builder.RegisterType<AutofacServiceProvider>().AsImplementedInterfaces();
 
-            return new ApplicationContext(builder.Build(), connection, fileSystem);
+            return new ApplicationContext(builder.Build(), fileSystem, connection);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return SqliteConnection.DisposeAsync();
         }
     }
 }

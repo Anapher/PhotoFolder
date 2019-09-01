@@ -9,9 +9,9 @@ namespace PhotoFolder.Infrastructure.Photos
 {
     public class BitmapHashComparer : IBitmapHashComparer
     {
-        public BitmapHashComparer(IOptions<BitmapHashOptions> options)
+        public BitmapHashComparer(IOptions<InfrastructureOptions> options)
         {
-            RequiredBitmapHashEquality = options.Value.RequiredEqualityPercentage;
+            RequiredBitmapHashEquality = options.Value.RequiredSimilarityForEquality;
         }
 
         public float RequiredBitmapHashEquality { get; }

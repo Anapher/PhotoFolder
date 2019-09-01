@@ -17,7 +17,7 @@ namespace PhotoFolder.Wpf.ViewModels
 {
     public class OpenFolderViewModel : BindableBase
     {
-        private string _folderPath = string.Empty;
+        private string _folderPath;
         private DelegateCommand? _choseFolderPathCommand;
         private DelegateCommand? _openFolderCommand;
         private readonly IWindowService _windowService;
@@ -39,7 +39,7 @@ namespace PhotoFolder.Wpf.ViewModels
             _regionManager = regionManager;
             _appSettingsProvider = appSettingsProvider;
 
-            FolderPath = _appSettingsProvider.Current.LatestPhotoFolder;
+            _folderPath = _appSettingsProvider.Current.LatestPhotoFolder ?? string.Empty;
         }
 
         public string FolderPath

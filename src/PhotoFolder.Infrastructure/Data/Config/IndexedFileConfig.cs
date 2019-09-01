@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Domain.Entities;
 
 namespace PhotoFolder.Infrastructure.Data.Config
@@ -11,16 +10,9 @@ namespace PhotoFolder.Infrastructure.Data.Config
         {
             builder.HasKey(x => x.Hash);
 
-            builder.OwnsOne(x => x.PhotoProperties, a =>
-            {
-                a.Property(p => p!.BitmapHash)
-                    .HasColumnName("PhotoBitmapHash")
-                    .HasConversion(x => x.ToString(), x => Hash.Parse(x));
-                a.Property(p => p!.Height)
-                    .HasColumnName("PhotoHeight");
-                a.Property(p => p!.Width)
-                   .HasColumnName("PhotoWidth");
-            });
+            builder.Property<string>("_photoPropertiesBitmapHash").HasColumnName("PhotoBitmapHash").UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.Property<int?>("_photoPropertiesWidth").HasColumnName("PhotoWidth").UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.Property<int?>("_photoPropertiesHeight").HasColumnName("PhotoHeight").UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.Metadata.FindNavigation(nameof(IndexedFile.Files))
                 .SetPropertyAccessMode(PropertyAccessMode.Field);

@@ -1,11 +1,11 @@
 ﻿using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
-using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using IFile = PhotoFolder.Core.Dto.Services.IFile;
 
 namespace PhotoFolder.Infrastructure.Files
@@ -15,12 +15,14 @@ namespace PhotoFolder.Infrastructure.Files
         private readonly FileInformationLoader _fileInformationLoader;
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _driveLocks;
         private readonly IFileSystem _fileSystem;
+        private readonly InfrastructureOptions _options;
 
-        public DiskLockedFileInformationLoader(FileInformationLoader fileInformationLoader, IFileSystem fileSystem)
+        public DiskLockedFileInformationLoader(FileInformationLoader fileInformationLoader, IFileSystem fileSystem, IOptions<InfrastructureOptions> options)
         {
             _fileInformationLoader = fileInformationLoader;
             _driveLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
             _fileSystem = fileSystem;
+            _options = options.Value;
         }
 
         public async ValueTask<FileInformation> Load(IFile file)
@@ -28,6 +30,9 @@ namespace PhotoFolder.Infrastructure.Files
             var root = _fileSystem.Path.GetPathRoot(file.Filename);
             var volumeLock = _driveLocks.GetOrAdd(root, _ => new SemaphoreSlim(1, 1));
             await volumeLock.WaitAsync();
+
+            if (file.Length > _options.LargeFileMargin)
+                return await _fileInformationLoader.Load(file);
 
             Stream fileStream;
             try
@@ -39,7 +44,7 @@ namespace PhotoFolder.Infrastructure.Files
                 volumeLock.Release();
             }
 
-            using (fileStream)
+            await using (fileStream)
             {
                 return _fileInformationLoader.Load(file, fileStream);
             }

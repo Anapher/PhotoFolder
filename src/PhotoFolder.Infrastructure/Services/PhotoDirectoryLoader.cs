@@ -51,12 +51,12 @@ namespace PhotoFolder.Infrastructure.Services
 
             if (_workspaceOptions.ApplyMigrations)
             {
-                using var context = new AppDbContext(contextOptions);
+                await using var context = new AppDbContext(contextOptions);
                 await context.Database.MigrateAsync();
             }
 
             var deletedFilesPath = _fileSystem.Path.Combine(path, config.DeletedFilesPath);
-            var deletedFiles =await DeletedFilesManager.Load(_fileSystem, deletedFilesPath);
+            var deletedFiles = await DeletedFilesManager.Load(_fileSystem, deletedFilesPath);
 
             return new PhotoDirectory(_fileSystem, path, config, contextOptions, deletedFiles);
         }

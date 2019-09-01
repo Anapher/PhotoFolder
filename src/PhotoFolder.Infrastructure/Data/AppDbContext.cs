@@ -24,23 +24,23 @@ namespace PhotoFolder.Infrastructure.Data
             base.OnModelCreating(builder);
 
             builder.ApplyConfiguration(new IndexedFileConfig());
-            builder.ApplyConfiguration(new FileLocationCinfig());
+            builder.ApplyConfiguration(new FileLocationConfig());
             builder.ApplyConfiguration(new FileOperationConfig());
         }
 
         public override int SaveChanges()
         {
-            AddAuitInfo();
+            AddAuditInfo();
             return base.SaveChanges();
         }
 
         public async Task<int> SaveChangesAsync()
         {
-            AddAuitInfo();
+            AddAuditInfo();
             return await base.SaveChangesAsync();
         }
 
-        private void AddAuitInfo()
+        private void AddAuditInfo()
         {
             var entries = ChangeTracker.Entries()
                 .Where(x => x.Entity is IEntity && (x.State == EntityState.Added || x.State == EntityState.Modified));

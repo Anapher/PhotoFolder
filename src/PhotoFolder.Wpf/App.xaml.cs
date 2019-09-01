@@ -17,7 +17,6 @@ using PhotoFolder.Core.Services.FileIntegrityValidators;
 using Prism.DryIoc;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
-using Autofac.Extensions.DependencyInjection;
 using DryIoc.Microsoft.DependencyInjection;
 using Prism.DryIoc.Ioc;
 
@@ -63,7 +62,7 @@ namespace PhotoFolder.Wpf
             builder.RegisterType<FileSystem>().As<IFileSystem>().SingleInstance();
 
             builder.RegisterInstance(Options.Create(new WorkspaceOptions())).As<IOptions<WorkspaceOptions>>();
-            builder.RegisterInstance(Options.Create(new BitmapHashOptions())).As<IOptions<BitmapHashOptions>>();
+            builder.RegisterInstance(Options.Create(new InfrastructureOptions())).As<IOptions<InfrastructureOptions>>();
 
             var container = builder.Build();
             containerRegistry.Populate(container);

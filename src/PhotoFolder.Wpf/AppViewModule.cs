@@ -35,6 +35,7 @@ namespace PhotoFolder.Wpf
             containerRegistry.RegisterDialog<DecisionManagerDialog, DecisionManagerViewModel>("DecisionManager");
             containerRegistry.RegisterDialog<DecisionAssistantDialog, DecisionAssistantDialogViewModel>("DecisionAssistant");
             containerRegistry.RegisterDialog<ReviewOperationsDialog, ReviewOperationsDialogViewModel>("ReviewOperations");
+            containerRegistry.RegisterDialog<FileOperationErrorsDialog, FileOperationErrorsDialogViewModel>("FileOperationErrors");
             containerRegistry.RegisterSingleton<PhotoFolderSynchronizationEvent>();
         }
     }

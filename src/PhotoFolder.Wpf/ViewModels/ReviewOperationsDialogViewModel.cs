@@ -9,22 +9,22 @@ using PhotoFolder.Application.Interfaces.Workers;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Wpf.Services;
 using PhotoFolder.Wpf.Utilities;
-using PhotoFolder.Wpf.ViewModels.Models;
-using Prism.Commands;
 using Prism.Services.Dialogs;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
     public class ReviewOperationsDialogViewModel : DialogBase
     {
+        private readonly IDialogService _dialogService;
         private IReadOnlyList<FileOperationInfo>? _operations;
         private IPhotoDirectory? _photoDirectory;
         private bool _removeFilesFromOutside;
         private OperationStatistics? _statistics;
         private AsyncDelegateCommand? _executeCommand;
 
-        public ReviewOperationsDialogViewModel(IExecuteOperationsWorker executeOperationsWorker)
+        public ReviewOperationsDialogViewModel(IExecuteOperationsWorker executeOperationsWorker, IDialogService dialogService)
         {
+            _dialogService = dialogService;
             ExecuteOperationsWorker = executeOperationsWorker;
         }
 
@@ -57,7 +57,13 @@ namespace PhotoFolder.Wpf.ViewModels
                     var request = new ExecuteOperationsRequest(Operations.Select(x => x.Operation).ToList(), RemoveFilesFromOutside,
                         _photoDirectory!.RootDirectory);
 
-                    await Task.Run(() => ExecuteOperationsWorker.Execute(request, CancellationToken.None));
+                    var response = await Task.Run(() => ExecuteOperationsWorker.Execute(request, CancellationToken.None));
+                    if (response.Exceptions.Any())
+                    {
+                        var parameters = new DialogParameters {{"errors", response.Exceptions}, {"removeFilesFromOutside", RemoveFilesFromOutside}};
+                        _dialogService.ShowDialog("FileOperationErrors", parameters, _ => { });
+                    }
+
                     OnRequestClose(new DialogResult(ButtonResult.OK));
                 });
             }

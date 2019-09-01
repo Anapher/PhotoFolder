@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -12,6 +12,7 @@
     <EmbeddedResource Include="Resources\flora_sonyalpha_compressed.jpg" />
     <EmbeddedResource Include="Resources\hanszimmer_htcu11.jpg" />
     <EmbeddedResource Include="Resources\lando_sonyalpha.jpg" />
+    <EmbeddedResource Include="Resources\textfile.txt" />
   </ItemGroup>
 
   <ItemGroup>

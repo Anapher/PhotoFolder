@@ -33,8 +33,7 @@ namespace PhotoFolder.Core.Services.FileIntegrityValidators
                     if (indexedFile.PhotoProperties == null) continue;
                     if (Hash.Parse(indexedFile.Hash).Equals(file.Hash)) continue; // can't be similar if it's equal
 
-                    var result = _bitmapHashComparer.Compare(indexedFile.PhotoProperties.BitmapHash,
-                        file.PhotoProperties.BitmapHash);
+                    var result = _bitmapHashComparer.Compare(indexedFile.PhotoProperties.BitmapHash, file.PhotoProperties.BitmapHash);
 
                     if (result > SimilarityThreshold)
                         similarFiles.Add(new SimilarFile(indexedFile.ToFileInformation(photoDirectory), result));

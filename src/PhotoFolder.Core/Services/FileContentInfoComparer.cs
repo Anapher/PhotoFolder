@@ -1,6 +1,7 @@
 ﻿using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
 using System.Collections.Generic;
+using PhotoFolder.Core.Domain;
 
 namespace PhotoFolder.Core.Services
 {
@@ -22,8 +23,8 @@ namespace PhotoFolder.Core.Services
             if (file1.PhotoProperties == null || file2.PhotoProperties == null)
                 return false; // we can only compare images
 
-            if (_bitmapHashComparer.Compare(file1.PhotoProperties.BitmapHash,
-                file2.PhotoProperties.BitmapHash) >= _bitmapHashComparer.RequiredBitmapHashEquality)
+            if (_bitmapHashComparer.Compare(file1.PhotoProperties.BitmapHash, file2.PhotoProperties.BitmapHash) >=
+                _bitmapHashComparer.RequiredBitmapHashEquality)
                 return true;
 
             return false;

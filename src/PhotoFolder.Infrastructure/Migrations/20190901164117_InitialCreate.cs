@@ -15,8 +15,8 @@ namespace PhotoFolder.Infrastructure.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     CreatedOn = table.Column<DateTimeOffset>(nullable: false),
                     ModifiedOn = table.Column<DateTimeOffset>(nullable: false),
-                    TargetFilename = table.Column<string>(nullable: true),
-                    TargetHash = table.Column<string>(nullable: true),
+                    TargetFilename = table.Column<string>(nullable: false),
+                    TargetHash = table.Column<string>(nullable: false),
                     SourceFilename = table.Column<string>(nullable: true),
                     SourceHash = table.Column<string>(nullable: true),
                     Type = table.Column<int>(nullable: false)
@@ -35,9 +35,9 @@ namespace PhotoFolder.Infrastructure.Migrations
                     FileCreatedOn = table.Column<DateTimeOffset>(nullable: false),
                     CreatedOn = table.Column<DateTimeOffset>(nullable: false),
                     ModifiedOn = table.Column<DateTimeOffset>(nullable: false),
-                    PhotoBitmapHash = table.Column<string>(nullable: false),
-                    PhotoWidth = table.Column<int>(nullable: false),
-                    PhotoHeight = table.Column<int>(nullable: false)
+                    PhotoBitmapHash = table.Column<string>(nullable: true),
+                    PhotoWidth = table.Column<int>(nullable: true),
+                    PhotoHeight = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -49,25 +49,26 @@ namespace PhotoFolder.Infrastructure.Migrations
                 columns: table => new
                 {
                     RelativeFilename = table.Column<string>(nullable: false),
-                    Hash = table.Column<string>(nullable: true),
+                    Hash = table.Column<string>(nullable: false),
                     CreatedOn = table.Column<DateTimeOffset>(nullable: false),
-                    ModifiedOn = table.Column<DateTimeOffset>(nullable: false)
+                    ModifiedOn = table.Column<DateTimeOffset>(nullable: false),
+                    IndexedFileHash = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FileLocation", x => x.RelativeFilename);
                     table.ForeignKey(
-                        name: "FK_FileLocation_IndexedFiles_Hash",
-                        column: x => x.Hash,
+                        name: "FK_FileLocation_IndexedFiles_IndexedFileHash",
+                        column: x => x.IndexedFileHash,
                         principalTable: "IndexedFiles",
                         principalColumn: "Hash",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_FileLocation_Hash",
+                name: "IX_FileLocation_IndexedFileHash",
                 table: "FileLocation",
-                column: "Hash");
+                column: "IndexedFileHash");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Microsoft.EntityFrameworkCore;
 using PhotoFolder.Application.Dto.WorkerRequests;
 using PhotoFolder.Application.Interfaces.Workers;
 using PhotoFolder.Core.Domain.Entities;
@@ -37,7 +36,7 @@ namespace PhotoFolder.Application.IntegrationTests
         /// <returns></returns>
         public static async Task<ApplicationContext> Initialize(ITestOutputHelper output, IReadOnlyDictionary<string, string> files)
         {
-            var app = ApplicationContext.Initialize(output);
+            var app = await ApplicationContext.Initialize(output);
 
             foreach (var file in files)
                 app.AddResourceFile(Path.Combine(PhotoFolderPath, file.Key), file.Value);
@@ -48,9 +47,9 @@ namespace PhotoFolder.Application.IntegrationTests
             var loader = app.Container.Resolve<IPhotoDirectoryLoader>();
             var photoDirectory = await loader.Load(PhotoFolderPath);
 
-            using (var context = ((PhotoDirectory) photoDirectory).GetAppDbContext())
+            await using (var context = ((PhotoDirectory) photoDirectory).GetAppDbContext())
             {
-                await context.Database.MigrateAsync();
+                await context.Database.EnsureCreatedAsync();
             }
 
             var worker = app.Container.Resolve<ISynchronizeIndexWorker>();
