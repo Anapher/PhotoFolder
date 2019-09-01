@@ -2,16 +2,15 @@
 using System.Linq;
 using Humanizer;
 using PhotoFolder.Core.Dto.Services.FileIssue;
+using PhotoFolder.Wpf.Utilities;
 using PhotoFolder.Wpf.ViewModels.Models;
-using Prism.Mvvm;
 using Prism.Services.Dialogs;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
-    public class DecisionAssistantDialogViewModel : BindableBase, IDialogAware
+    public class DecisionAssistantDialogViewModel : DialogBase
     {
         private DecisionAssistantContext? _context;
-        private string _title = string.Empty;
 
         public DecisionAssistantContext? Context
         {
@@ -19,21 +18,7 @@ namespace PhotoFolder.Wpf.ViewModels
             set => SetProperty(ref _context, value);
         }
 
-        public bool CanCloseDialog() => true;
-
-        public string Title
-        {
-            get => _title;
-            set => SetProperty(ref _title, value);
-        }
-
-        public event Action<IDialogResult> RequestClose;
-
-        public void OnDialogClosed()
-        {
-        }
-
-        public void OnDialogOpened(IDialogParameters parameters)
+        public override void OnDialogOpened(IDialogParameters parameters)
         {
             var viewModel = parameters.GetValue<IssueDecisionWrapperViewModel>("decision");
             var decisionManagerContext = parameters.GetValue<DecisionManagerContext>("decisionManagerContext");
@@ -59,7 +44,7 @@ namespace PhotoFolder.Wpf.ViewModels
 
         private void CloseDialogAction()
         {
-            RequestClose?.Invoke(new DialogResult());
+            OnRequestClose(new DialogResult());
         }
     }
 
@@ -75,15 +60,5 @@ namespace PhotoFolder.Wpf.ViewModels
         public IssueDecisionWrapperViewModel DecisionWrapper { get; }
         public DecisionManagerContext DecisionManagerContext { get; }
         public Action CloseDialogAction { get; }
-    }
-
-    public class ApplyDecisionSettings
-    {
-        public ApplyDecisionSettings(Action<IIssueDecisionViewModel> apply)
-        {
-            Apply = apply;
-        }
-
-        public Action<IIssueDecisionViewModel> Apply { get; }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
-using PhotoFolder.Core.Domain;
+using PhotoFolder.Application.Dto;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Extensions;
@@ -10,33 +10,6 @@ using Prism.Mvvm;
 
 namespace PhotoFolder.Wpf.ViewModels.Models
 {
-    public interface IFileOperation
-    {
-        FileInformation File { get; }
-    }
-
-    public class DeleteFileOperation : IFileOperation
-    {
-        public DeleteFileOperation(FileInformation file)
-        {
-            File = file;
-        }
-
-        public FileInformation File { get; }
-    }
-
-    public class MoveFileOperation : IFileOperation
-    {
-        public MoveFileOperation(FileInformation file, string targetPath)
-        {
-            File = file;
-            TargetPath = targetPath;
-        }
-
-        public FileInformation File { get; }
-        public string TargetPath { get; }
-    }
-
     public interface IIssueDecisionViewModel : INotifyPropertyChanged
     {
         bool IsRecommended { get; }
@@ -103,13 +76,14 @@ namespace PhotoFolder.Wpf.ViewModels.Models
 
     public abstract class DeleteFilesDecisionViewModel : BindableBase, IIssueDecisionViewModel
     {
+        private readonly IFileIssue _fileIssue;
         protected readonly IReadOnlyList<Checkable<FileInformation>> _allFiles;
         protected IReadOnlyList<Checkable<FileInformation>> _files;
         private IReadOnlyList<IFileOperation> _operations;
 
         protected DeleteFilesDecisionViewModel(IFileIssue fileIssue, IReadOnlyList<Checkable<FileInformation>> files)
         {
-            Issue = fileIssue;
+            _fileIssue = fileIssue;
             _allFiles = files;
 
             IssueFileCheckable = files.Single(x => x.Value == fileIssue.File);
@@ -133,7 +107,7 @@ namespace PhotoFolder.Wpf.ViewModels.Models
         }
 
         public abstract bool IsRecommended { get; }
-        public IFileIssue Issue { get; }
+        IFileIssue IIssueDecisionViewModel.Issue => _fileIssue;
 
         public IReadOnlyList<IFileOperation> Operations
         {
@@ -144,7 +118,7 @@ namespace PhotoFolder.Wpf.ViewModels.Models
         public bool UpdateDeletedFiles(IReadOnlyList<FileInformation> deletedFiles)
         {
             Files = GetFilesView(deletedFiles);
-            return (!IssueFileCheckable.IsChecked || deletedFiles.All(x => Issue.File.Filename != x.Filename)) && Files.Any();
+            return (!IssueFileCheckable.IsChecked || deletedFiles.All(x => _fileIssue.File.Filename != x.Filename)) && Files.Any();
         }
 
         private IReadOnlyList<IFileOperation> GetOperations()
@@ -167,27 +141,33 @@ namespace PhotoFolder.Wpf.ViewModels.Models
     {
         public DuplicateFileDecisionViewModel(DuplicateFilesIssue fileIssue, IReadOnlyList<Checkable<FileInformation>> files) : base(fileIssue, files)
         {
+            Issue = fileIssue;
         }
 
         public override bool IsRecommended { get; } = true;
+        public DuplicateFilesIssue Issue { get; }
     }
 
     public class SimilarFileDecisionViewModel : DeleteFilesDecisionViewModel
     {
         public SimilarFileDecisionViewModel(SimilarFilesIssue fileIssue, IReadOnlyList<Checkable<FileInformation>> files) : base(fileIssue, files)
         {
+            Issue = fileIssue;
         }
 
         public override bool IsRecommended { get; } = false;
+        public SimilarFilesIssue Issue { get; }
     }
 
     public class FormerlyDeletedFileDecisionViewModel : DeleteFilesDecisionViewModel
     {
         public FormerlyDeletedFileDecisionViewModel(FormerlyDeletedIssue formerlyDeletedIssue) : base(formerlyDeletedIssue, formerlyDeletedIssue.File.Yield().Select(x => new Checkable<FileInformation>(x)).ToList())
         {
+            Issue = formerlyDeletedIssue;
         }
 
         public override bool IsRecommended { get; } = true;
+        public FormerlyDeletedIssue Issue { get; }
     }
 
     public class InvalidLocationFileDecisionViewModel : BindableBase, IIssueDecisionViewModel
@@ -203,7 +183,9 @@ namespace PhotoFolder.Wpf.ViewModels.Models
             _operations = GetOperations();
         }
 
-        public IFileIssue Issue { get; }
+        public InvalidFileLocationIssue Issue { get; }
+        IFileIssue IIssueDecisionViewModel.Issue => Issue;
+
         public bool IsRecommended { get; } = true;
 
         public IReadOnlyList<IFileOperation> Operations

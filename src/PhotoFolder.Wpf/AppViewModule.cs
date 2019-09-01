@@ -1,4 +1,5 @@
-﻿using PhotoFolder.Wpf.ViewModels;
+﻿using PhotoFolder.Wpf.Services;
+using PhotoFolder.Wpf.ViewModels;
 using PhotoFolder.Wpf.Views;
 using Prism.Ioc;
 using Prism.Regions;
@@ -33,6 +34,8 @@ namespace PhotoFolder.Wpf
             containerRegistry.RegisterDialog<ConfigureFolderDialog, ConfigureFolderDialogViewModel>("ConfigureFolder");
             containerRegistry.RegisterDialog<DecisionManagerDialog, DecisionManagerViewModel>("DecisionManager");
             containerRegistry.RegisterDialog<DecisionAssistantDialog, DecisionAssistantDialogViewModel>("DecisionAssistant");
+            containerRegistry.RegisterDialog<ReviewOperationsDialog, ReviewOperationsDialogViewModel>("ReviewOperations");
+            containerRegistry.RegisterSingleton<PhotoFolderSynchronizationEvent>();
         }
     }
 }

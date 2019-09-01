@@ -1,21 +1,21 @@
-﻿using PhotoFolder.Application.Dto.WorkerResponses;
+﻿using System;
+using PhotoFolder.Application.Dto.WorkerResponses;
 using PhotoFolder.Core.Interfaces.Gateways;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using PhotoFolder.Application.Dto;
 using PhotoFolder.Wpf.Services;
+using PhotoFolder.Wpf.Utilities;
 using PhotoFolder.Wpf.ViewModels.Models;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
-    public class DecisionManagerViewModel : BindableBase, IDialogAware
+    public class DecisionManagerViewModel : DialogBase
     {
         private DecisionManagerContext? _context;
-
-        public string Title { get; } = "You Decide!";
 
         public DecisionManagerContext? Context
         {
@@ -23,21 +23,20 @@ namespace PhotoFolder.Wpf.ViewModels
             set => SetProperty(ref _context, value);
         }
 
-        public event Action<IDialogResult> RequestClose;
-
-        public bool CanCloseDialog() => true;
-
-        public void OnDialogClosed()
-        {
-        }
-
-        public void OnDialogOpened(IDialogParameters parameters)
+        public override void OnDialogOpened(IDialogParameters parameters)
         {
             var report = parameters.GetValue<FileCheckReport>("report");
             var photoDirectory = parameters.GetValue<IPhotoDirectory>("photoDirectory");
 
             var issues = ImportDecisionFactory.Create(report, photoDirectory).Select(x => new IssueDecisionWrapperViewModel(x)).ToList();
-            Context = new DecisionManagerContext(issues, photoDirectory);
+            Context = new DecisionManagerContext(issues, photoDirectory, ResyncDatabaseAction);
+
+            Title = "You Decide!";
+        }
+
+        private void ResyncDatabaseAction()
+        {
+            OnRequestClose(new DialogResult(ButtonResult.OK));
         }
     }
 
@@ -46,10 +45,11 @@ namespace PhotoFolder.Wpf.ViewModels
         private IssueDecisionWrapperViewModel? _selectedIssue;
         private bool _removeFilesFromOutside;
 
-        public DecisionManagerContext(List<IssueDecisionWrapperViewModel> issues, IPhotoDirectory photoDirectory)
+        public DecisionManagerContext(List<IssueDecisionWrapperViewModel> issues, IPhotoDirectory photoDirectory, Action resyncDatabaseAction)
         {
             Issues = issues;
             PhotoDirectory = photoDirectory;
+            ResyncDatabaseAction = resyncDatabaseAction;
 
             OnUpdateOperations();
 
@@ -62,6 +62,7 @@ namespace PhotoFolder.Wpf.ViewModels
 
         public List<IssueDecisionWrapperViewModel> Issues { get; }
         public IPhotoDirectory PhotoDirectory { get; }
+        public Action ResyncDatabaseAction { get; }
 
         public bool RemoveFilesFromOutside
         {

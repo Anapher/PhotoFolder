@@ -37,6 +37,9 @@
                 IsCheckable="True"
                 IsChecked="{Binding DecisionContext.RemoveFilesFromOutside}" />
         </MenuItem>
-        <MenuItem Header="Review and execute" Icon="{StaticResource RunIcon}" />
+        <MenuItem
+            Command="{Binding ReviewAndExecuteCommand}"
+            Header="Review and execute"
+            Icon="{StaticResource RunIcon}" />
     </Menu>
 </UserControl>

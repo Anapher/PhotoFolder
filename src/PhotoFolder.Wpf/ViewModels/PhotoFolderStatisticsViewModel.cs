@@ -1,17 +1,25 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Infrastructure.Photos;
+using PhotoFolder.Wpf.Services;
 using Prism.Mvvm;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
     public class PhotoFolderStatisticsViewModel : BindableBase
     {
+        private readonly PhotoFolderSynchronizationEvent _synchronizationEvent;
         private int _totalFiles;
         private long _totalSize;
         private int _totalUniqueFiles;
+
+        public PhotoFolderStatisticsViewModel(PhotoFolderSynchronizationEvent synchronizationEvent)
+        {
+            _synchronizationEvent = synchronizationEvent;
+        }
 
         public int TotalFiles
         {
@@ -33,7 +41,15 @@ namespace PhotoFolder.Wpf.ViewModels
 
         public async void Initialize(IPhotoDirectory photoDirectory)
         {
-            using var context = ((PhotoDirectory) photoDirectory).GetAppDbContext();
+            await ComputeStatistics(photoDirectory);
+
+#pragma warning disable 4014
+            _synchronizationEvent.PhotoFolderSynchronized += (sender, args) => ComputeStatistics(photoDirectory);
+        }
+
+        private async Task ComputeStatistics(IPhotoDirectory photoDirectory)
+        {
+            using var context = ((PhotoDirectory)photoDirectory).GetAppDbContext();
 
             TotalFiles = await context.Set<FileLocation>().CountAsync();
             TotalUniqueFiles = await context.Set<IndexedFile>().CountAsync();

@@ -1,0 +1,233 @@
+﻿<UserControl
+    x:Class="PhotoFolder.Wpf.Views.ReviewOperationsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:decision="clr-namespace:PhotoFolder.Wpf.Views.Decision"
+    xmlns:fileIssue="clr-namespace:PhotoFolder.Core.Dto.Services.FileIssue;assembly=PhotoFolder.Core"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mvvm="http://prismlibrary.com/"
+    xmlns:services="clr-namespace:PhotoFolder.Wpf.Services"
+    xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
+    Width="850"
+    Height="450"
+    d:DataContext="{d:DesignInstance viewModels:ReviewOperationsDialogViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mvvm:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="LabelTextBlock" TargetType="TextBlock" />
+        <Style x:Key="ValueTextBlock" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,3,0,0" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Margin="16"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Style="{StaticResource LabelTextBlock}" Text="Total Operations" />
+                <TextBlock Style="{StaticResource ValueTextBlock}" Text="{Binding Operations.Count}" />
+            </StackPanel>
+            <StackPanel Margin="16,0,0,0" Orientation="Vertical">
+                <TextBlock Style="{StaticResource LabelTextBlock}" Text="Copy Operations" />
+                <TextBlock Style="{StaticResource ValueTextBlock}" Text="{Binding Statistics.CopyOperations}" />
+            </StackPanel>
+            <StackPanel Margin="16,0,0,0" Orientation="Vertical">
+                <TextBlock Style="{StaticResource LabelTextBlock}" Text="Move Operations" />
+                <TextBlock Style="{StaticResource ValueTextBlock}" Text="{Binding Statistics.MoveOperations}" />
+            </StackPanel>
+            <StackPanel Margin="16,0,0,0" Orientation="Vertical">
+                <TextBlock Style="{StaticResource LabelTextBlock}" Text="Delete Operations" />
+                <TextBlock Style="{StaticResource ValueTextBlock}" Text="{Binding Statistics.DeleteOperations}" />
+            </StackPanel>
+            <StackPanel Margin="16,0,0,0" Orientation="Vertical">
+                <TextBlock Style="{StaticResource LabelTextBlock}" Text="Deleted External Files" />
+                <TextBlock Style="{StaticResource ValueTextBlock}" Text="{Binding Statistics.DeletedExternalFiles}" />
+            </StackPanel>
+            <StackPanel Margin="16,0,0,0" Orientation="Vertical">
+                <TextBlock Style="{StaticResource LabelTextBlock}" Text="Deleted Photo Directory Files" />
+                <TextBlock Style="{StaticResource ValueTextBlock}" Text="{Binding Statistics.DeletedFilesOfPhotoDirectory}" />
+            </StackPanel>
+            <StackPanel Margin="16,0,0,0" Orientation="Vertical">
+                <TextBlock Style="{StaticResource LabelTextBlock}" Text="New Files" />
+                <TextBlock Style="{StaticResource ValueTextBlock}" Text="{Binding Statistics.NewFiles}" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+            <Grid Background="#27ae60">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Statistics.DeletedFilesOfPhotoDirectory}" Value="0">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <TextBlock
+                    Margin="8,4"
+                    Foreground="White"
+                    Text="No data of the photo directory will be lost. This is a safe transaction for the photo directory." />
+            </Grid>
+            <Grid Background="#c0392b">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Statistics.DeletedFilesOfPhotoDirectory}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <TextBlock Margin="8,4" Foreground="White">
+                    <Run Text="{Binding Statistics.DeletedFilesOfPhotoDirectory, Mode=OneWay}" />
+                    <Run Text="file(s) will be completely removed from the photo directory" />
+                </TextBlock>
+            </Grid>
+            <Grid Background="#e67e22">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Statistics.DeletedExternalFiles}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <TextBlock Margin="8,4" Foreground="White">
+                    <Run Text="{Binding Statistics.DeletedExternalFiles, Mode=OneWay}" />
+                    <Run Text="file(s) will be removed from an external source" />
+                </TextBlock>
+            </Grid>
+        </StackPanel>
+        <DataGrid
+            Grid.Row="2"
+            Margin="0,16,0,0"
+            AutoGenerateColumns="False"
+            BorderThickness="0,0,0,1"
+            ItemsSource="{Binding Operations}">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn
+                    Width="*"
+                    Header="Operation"
+                    IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type services:FileOperationInfo}">
+                            <decision:OperationView
+                                FileOperation="{Binding Operation}"
+                                IsSelected="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsSelected}"
+                                RemoveFilesFromOutside="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RemoveFilesFromOutside}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn
+                    Width="100"
+                    Header="Issue"
+                    IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type services:FileOperationInfo}">
+                            <ContentControl Content="{Binding Issue}">
+                                <ContentControl.Resources>
+                                    <DataTemplate DataType="{x:Type fileIssue:FormerlyDeletedIssue}">
+                                        <TextBlock Text="Formerly Deleted" />
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type fileIssue:InvalidFileLocationIssue}">
+                                        <TextBlock Text="Wrong Location" />
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type fileIssue:DuplicateFilesIssue}">
+                                        <TextBlock Text="Duplicate File" />
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type fileIssue:SimilarFilesIssue}">
+                                        <TextBlock Text="Similar File" />
+                                    </DataTemplate>
+                                </ContentControl.Resources>
+                            </ContentControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn
+                    Width="80"
+                    Header="File Base"
+                    IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type services:FileOperationInfo}">
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding FileBaseChange}" Value="{x:Static services:FileBaseChange.NoChanges}">
+                                                <Setter Property="Text" Value="No Changes" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding FileBaseChange}" Value="{x:Static services:FileBaseChange.FileDeleted}">
+                                                <Setter Property="Text" Value="File Deleted" />
+                                                <Setter Property="Foreground" Value="#e74c3c" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding FileBaseChange}" Value="{x:Static services:FileBaseChange.NewFile}">
+                                                <Setter Property="Text" Value="File Added" />
+                                                <Setter Property="Foreground" Value="#27ae60" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsSelected}" Value="true">
+                                                <Setter Property="Foreground" Value="{StaticResource MahApps.Brushes.IdealForeground}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Grid Grid.Row="3">
+            <Button
+                Margin="16"
+                HorizontalAlignment="Center"
+                Command="{Binding ExecuteCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <ContentControl Margin="0,-5,2,-5" Content="{StaticResource RunIcon}" />
+                    <TextBlock Text="EXECUTE OPERATIONS" />
+                </StackPanel>
+            </Button>
+            <TextBlock Margin="16" VerticalAlignment="Bottom">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ExecuteOperationsWorker.State.ProcessedOperations}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+                <Run Text="{Binding ExecuteOperationsWorker.State.ProcessedOperations, Mode=OneWay}" />
+                <Run Text="/" />
+                <Run Text="{Binding ExecuteOperationsWorker.State.TotalOperations, Mode=OneWay}" />
+            </TextBlock>
+            <mah:MetroProgressBar
+                VerticalAlignment="Bottom"
+                Maximum="{Binding ExecuteOperationsWorker.State.TotalOperations}"
+                Value="{Binding ExecuteOperationsWorker.State.ProcessedOperations, Mode=OneWay}">
+                <mah:MetroProgressBar.Style>
+                    <Style TargetType="mah:MetroProgressBar">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ExecuteOperationsWorker.State.ProcessedOperations}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </mah:MetroProgressBar.Style>
+            </mah:MetroProgressBar>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -14,6 +14,7 @@ using PhotoFolder.Wpf.Extensions;
 using PhotoFolder.Wpf.Services;
 using PhotoFolder.Wpf.Utilities;
 using Prism.Mvvm;
+using Prism.Regions;
 using Prism.Services.Dialogs;
 
 namespace PhotoFolder.Wpf.ViewModels
@@ -23,6 +24,7 @@ namespace PhotoFolder.Wpf.ViewModels
         private static readonly string[] ImageExtensions = {".bmp", ".jpg", ".png", ".gif"};
         private readonly IFileSystem _fileSystem;
         private readonly IDialogService _dialogService;
+        private readonly IRegionManager _regionManager;
         private readonly IServiceProvider _serviceProvider;
         private readonly IWindowService _windowService;
 
@@ -31,12 +33,13 @@ namespace PhotoFolder.Wpf.ViewModels
         private IPhotoDirectory? _photoDirectory;
 
         public PhotoFolderImportViewModel(IServiceProvider serviceProvider, IWindowService windowService,
-            IFileSystem fileSystem, IDialogService dialogService)
+            IFileSystem fileSystem, IDialogService dialogService, IRegionManager regionManager)
         {
             _serviceProvider = serviceProvider;
             _windowService = windowService;
             _fileSystem = fileSystem;
             _dialogService = dialogService;
+            _regionManager = regionManager;
         }
 
         public AsyncDelegateCommand OpenFilesCommand =>
@@ -123,7 +126,14 @@ namespace PhotoFolder.Wpf.ViewModels
 
             var parameters = new DialogParameters {{"report", report}, {"photoDirectory", _photoDirectory}};
 
-            _dialogService.ShowDialog("DecisionManager", parameters, _ => { });
+            _dialogService.ShowDialog("DecisionManager", parameters, result =>
+            {
+                if (result.Result == ButtonResult.OK)
+                {
+                    var parameters = new NavigationParameters { { "photoDirectory", _photoDirectory } };
+                    _regionManager.RequestNavigate(RegionNames.MainView, "SynchronizeFolderView", parameters);
+                }
+            });
         }
     }
 }

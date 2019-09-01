@@ -1,12 +1,12 @@
 ﻿using System;
 using PhotoFolder.Core.Domain.Template;
+using PhotoFolder.Wpf.Utilities;
 using Prism.Commands;
-using Prism.Mvvm;
 using Prism.Services.Dialogs;
 
 namespace PhotoFolder.Wpf.ViewModels
 {
-    public class ConfigureFolderDialogViewModel : BindableBase, IDialogAware
+    public class ConfigureFolderDialogViewModel : DialogBase
     {
         private DelegateCommand? _configureCommand;
         private string _pathTemplate = "{date:yyyy}/{date:MM.dd} - {eventName}/{filename}";
@@ -21,23 +21,8 @@ namespace PhotoFolder.Wpf.ViewModels
             _configureCommand ??= new DelegateCommand(() =>
             {
                 var result = new DialogResult(ButtonResult.OK, new DialogParameters {{"templateString", PathTemplate}});
-                RequestClose?.Invoke(result);
+                OnRequestClose(result);
             }, CheckPathTemplate).ObservesProperty(() => PathTemplate);
-
-        public string Title { get; } = "Configure your Photo Folder";
-
-        public event Action<IDialogResult> RequestClose;
-
-        public bool CanCloseDialog() => true;
-
-        public void OnDialogClosed()
-        {
-            RequestClose?.Invoke(new DialogResult());
-        }
-
-        public void OnDialogOpened(IDialogParameters parameters)
-        {
-        }
 
         private bool CheckPathTemplate()
         {

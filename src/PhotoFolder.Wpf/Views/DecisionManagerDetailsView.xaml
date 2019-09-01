@@ -4,9 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:PhotoFolder.Wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:decision="clr-namespace:PhotoFolder.Wpf.Views.Decision"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:modelConverter="clr-namespace:PhotoFolder.Wpf.Converter.Models"
-    xmlns:models="clr-namespace:PhotoFolder.Wpf.ViewModels.Models"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
     d:DataContext="{d:DesignInstance viewModels:DecisionManagerDetailsViewModel}"
@@ -146,67 +146,11 @@
         <StackPanel Margin="16" Orientation="Vertical">
             <TextBlock FontSize="16" Text="Operations" />
             <ItemsControl ItemsSource="{Binding Selection.Decision.Operations}">
-                <ItemsControl.Resources>
-                    <DataTemplate DataType="{x:Type models:MoveFileOperation}">
-                        <Grid Margin="0,4,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <ContentControl>
-                                <ContentControl.Style>
-                                    <Style TargetType="ContentControl">
-                                        <Setter Property="Content" Value="{StaticResource FileDestinationIcon}" />
-                                        <Style.Triggers>
-                                            <MultiDataTrigger>
-                                                <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding File.RelativeFilename}" Value="{x:Null}" />
-                                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.DecisionContext.RemoveFilesFromOutside}" Value="false" />
-                                                </MultiDataTrigger.Conditions>
-                                                <Setter Property="Content" Value="{StaticResource CopyIcon}" />
-                                            </MultiDataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ContentControl.Style>
-                            </ContentControl>
-                            <TextBlock
-                                Grid.Column="1"
-                                Margin="8,0,0,0"
-                                TextWrapping="Wrap">
-                                <Run Foreground="#d35400" Text="{Binding File, Converter={StaticResource GetFileInformationPathConverter}, Mode=OneWay}" />
-                                <Run Text="to" />
-                                <Run Foreground="#2980b9" Text="{Binding TargetPath, Mode=OneWay}" />
-                            </TextBlock>
-                        </Grid>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <decision:OperationView FileOperation="{Binding}" RemoveFilesFromOutside="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.DecisionContext.RemoveFilesFromOutside}" />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type models:DeleteFileOperation}">
-                        <Grid Margin="0,4,0,0">
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding File.RelativeFilename}" Value="{x:Null}" />
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.DecisionContext.RemoveFilesFromOutside}" Value="false" />
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </MultiDataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Grid.Style>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <ContentControl Content="{StaticResource CancelIcon}" />
-                            <TextBlock
-                                Grid.Column="1"
-                                Margin="8,0,0,0"
-                                Text="{Binding File, Converter={StaticResource GetFileInformationPathConverter}}"
-                                TextWrapping="Wrap" />
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.Resources>
+                </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
     </StackPanel>

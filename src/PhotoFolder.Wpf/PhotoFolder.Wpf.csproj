@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <None Remove="Views\DecisionFormerlyDeletedView.xaml" />
+    <None Remove="Views\Decision\OperationView.xaml" />
+    <None Remove="Views\ReviewOperationsDialog.xaml" />
   </ItemGroup>
 
   <ItemGroup>

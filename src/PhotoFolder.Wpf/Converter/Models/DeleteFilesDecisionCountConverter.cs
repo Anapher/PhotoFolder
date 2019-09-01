@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Data;
+using PhotoFolder.Application.Dto;
 using PhotoFolder.Core.Dto.Services;
-using PhotoFolder.Wpf.ViewModels.Models;
 
 namespace PhotoFolder.Wpf.Converter.Models
 {

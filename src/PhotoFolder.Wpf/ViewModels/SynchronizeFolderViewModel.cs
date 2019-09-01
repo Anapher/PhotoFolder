@@ -14,15 +14,17 @@ namespace PhotoFolder.Wpf.ViewModels
     public class SynchronizeFolderViewModel : BindableBase, INavigationAware
     {
         private readonly IRegionManager _regionManager;
+        private readonly PhotoFolderSynchronizationEvent _synchronizationEvent;
         private readonly ISynchronizeIndexWorker _synchronizeIndexWorker;
         private readonly IWindowService _windowService;
 
         public SynchronizeFolderViewModel(ISynchronizeIndexWorker synchronizeIndexWorker, IWindowService windowService,
-            IRegionManager regionManager)
+            IRegionManager regionManager, PhotoFolderSynchronizationEvent synchronizationEvent)
         {
             _synchronizeIndexWorker = synchronizeIndexWorker;
             _windowService = windowService;
             _regionManager = regionManager;
+            _synchronizationEvent = synchronizationEvent;
         }
 
         public SynchronizeIndexState State => _synchronizeIndexWorker.State;
@@ -51,6 +53,8 @@ namespace PhotoFolder.Wpf.ViewModels
                 _regionManager.RequestNavigate(RegionNames.MainView, "OpenFolderView");
                 return;
             }
+
+            _synchronizationEvent.OnPhotoFolderSynchronized();
 
             var parameters = new NavigationParameters {{"photoDirectory", photoDirectory}};
             _regionManager.RequestNavigate(RegionNames.MainView, "PhotoFolderView", parameters);

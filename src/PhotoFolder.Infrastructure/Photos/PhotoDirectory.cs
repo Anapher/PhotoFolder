@@ -38,6 +38,7 @@ namespace PhotoFolder.Infrastructure.Photos
             DeletedFiles = deletedFiles;
         }
 
+        string IPhotoDirectory.RootDirectory => _rootDirectory;
         public IEqualityComparer<string> PathComparer => StringComparer.OrdinalIgnoreCase;
         public IDeletedFiles DeletedFiles { get; }
 

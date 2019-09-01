@@ -26,13 +26,13 @@ namespace PhotoFolder.Application.Dto.WorkerStates
 
         public int TotalFiles
         {
-            get { return _totalFiles; }
+            get => _totalFiles;
             internal set => SetProperty(ref _totalFiles, value);
         }
 
         public int ProcessedFiles
         {
-            get { return _processedFiles; }
+            get => _processedFiles;
             internal set => SetProperty(ref _processedFiles, value);
         }
 

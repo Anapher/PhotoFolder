@@ -7,6 +7,8 @@ namespace PhotoFolder.Core.Interfaces.Gateways
 {
     public interface IPhotoDirectory
     {
+        string RootDirectory { get; }
+
         IEqualityComparer<string> PathComparer { get; }
         IDeletedFiles DeletedFiles { get; }
 
