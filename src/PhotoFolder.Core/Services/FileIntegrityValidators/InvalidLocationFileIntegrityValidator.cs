@@ -5,8 +5,10 @@ using PhotoFolder.Core.Extensions;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Services;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace PhotoFolder.Core.Services.FileIntegrityValidators
 {
@@ -19,8 +21,10 @@ namespace PhotoFolder.Core.Services.FileIntegrityValidators
             _pathUtils = pathUtils;
         }
 
-        public IEnumerable<IFileIssue> CheckForIssues(FileInformation file, IPhotoDirectory photoDirectory, IReadOnlyList<IndexedFile> indexedFiles)
+        public async ValueTask<IEnumerable<IFileIssue>> CheckForIssues(FileInformation file, IFileBaseContext fileBaseContext,
+            IPhotoDirectoryDataContext dataContext)
         {
+            var photoDirectory = fileBaseContext.PhotoDirectory;
             var pathPattern = photoDirectory.GetFilenameTemplate(file).ToRegexPattern();
 
             if (file.RelativeFilename == null || !Regex.IsMatch(file.RelativeFilename, pathPattern))
@@ -30,14 +34,16 @@ namespace PhotoFolder.Core.Services.FileIntegrityValidators
                 var recommendedName = _pathUtils.GetFileName(recommendedPath);
 
                 var directoryTemplate = photoDirectory.GetFileDirectoryTemplate(file);
-                var directoryRegex = new Regex(directoryTemplate.ToRegexPattern());
 
-                var directorySuggestions = indexedFiles.SelectMany(x => x.Files).Select(x => _pathUtils.GetDirectoryName(x.RelativeFilename))
-                    .Where(x => directoryRegex.IsMatch(x)).Concat(recommendedDirectory.Yield()).Distinct().ToList();
+                var directorySuggestions = await dataContext.FileRepository.FindMatchingDirectories(directoryTemplate);
+                if (!directorySuggestions.Contains(recommendedDirectory))
+                    directorySuggestions.Add(recommendedDirectory);
 
-                yield return new InvalidFileLocationIssue(file, directoryTemplate,
-                    directorySuggestions.Select(x => new FilenameSuggestion(x, _pathUtils.Combine(x, recommendedName))).ToList(), recommendedName);
+                return new InvalidFileLocationIssue(file, directoryTemplate,
+                    directorySuggestions.Select(x => new FilenameSuggestion(x, _pathUtils.Combine(x, recommendedName))).ToList(), recommendedName).Yield();
             }
+
+            return Enumerable.Empty<IFileIssue>();
         }
     }
 }

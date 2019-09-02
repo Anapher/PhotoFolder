@@ -49,7 +49,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
                 0b01100001, 0b10111011,
             };
 
-            var comparer = new BitmapHashComparer(Options.Create(new BitmapHashOptions { RequiredEqualityPercentage = 0.99F }));
+            var comparer = new BitmapHashComparer(Options.Create(new InfrastructureOptions {RequiredSimilarityForEquality = 0.99F}));
 
             var result = comparer.Compare(new Hash(picture), new Hash(pictureRotated));
             Assert.Equal(1F, result);

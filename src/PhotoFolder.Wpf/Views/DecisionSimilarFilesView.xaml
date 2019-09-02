@@ -8,7 +8,7 @@
     xmlns:modelConverter="clr-namespace:PhotoFolder.Wpf.Converter.Models"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
-    Width="920"
+    Width="990"
     Height="500"
     d:DataContext="{d:DesignInstance viewModels:DecisionSimilarFilesViewModel}"
     d:DesignHeight="450"
@@ -22,10 +22,11 @@
     <ListView
         Margin="4"
         ItemsSource="{Binding Files}"
+        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
         SelectionMode="Multiple">
         <ListView.ItemsPanel>
             <ItemsPanelTemplate>
-                <WrapPanel />
+                <WrapPanel Orientation="Horizontal" />
             </ItemsPanelTemplate>
         </ListView.ItemsPanel>
         <ListView.ItemTemplate>
@@ -41,22 +42,26 @@
                             Margin="0,4,0,0"
                             HorizontalAlignment="Center"
                             Orientation="Horizontal">
-                            <ContentControl FontSize="16">
+                            <ContentControl Content="{Binding SimilarFile}" FontSize="16">
                                 <ContentControl.Style>
                                     <Style TargetType="ContentControl">
-                                        <Setter Property="Content">
+                                        <Setter Property="ContentTemplate">
                                             <Setter.Value>
-                                                <TextBlock>
-                                                    <Run Text="{Binding SimilarFile.Similarity, StringFormat=P, Mode=OneWay}" />
-                                                    <Run Text="similarity" />
-                                                </TextBlock>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding Similarity, StringFormat=P, Mode=OneWay}" />
+                                                        <Run Text="similarity" />
+                                                    </TextBlock>
+                                                </DataTemplate>
                                             </Setter.Value>
                                         </Setter>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding SimilarFile}" Value="{x:Null}">
-                                                <Setter Property="Content">
+                                                <Setter Property="ContentTemplate">
                                                     <Setter.Value>
-                                                        <TextBlock Text="Reference Image" />
+                                                        <DataTemplate>
+                                                            <TextBlock Text="Reference Image" />
+                                                        </DataTemplate>
                                                     </Setter.Value>
                                                 </Setter>
                                             </DataTrigger>
@@ -93,7 +98,7 @@
                             HorizontalAlignment="Center"
                             Foreground="{StaticResource MahApps.Brushes.Gray3}">
                             <Run Text="Size: " />
-                            <Run FontWeight="SemiBold" Text="{Binding File.Value.Length, Mode=OneWay, Converter={StaticResource FormatBytesConverter}}" /><Run Text="," />
+                            <Run FontWeight="SemiBold" Text="{Binding File.Value.Length, Mode=OneWay, Converter={StaticResource FormatBytesConverter}}" />
                             <Run Text="Dimensions: " />
                             <Run FontWeight="SemiBold" Text="{Binding File.Value.PhotoProperties.Width, Mode=OneWay}" /><Run FontWeight="SemiBold" Text="px" />
                             <Run Text="x" />

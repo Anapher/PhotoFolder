@@ -8,6 +8,7 @@ using PhotoFolder.Application.Interfaces.Workers;
 using PhotoFolder.Core.Domain.Entities;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Extensions;
+using PhotoFolder.Core.Specifications.FileInformation;
 using PhotoFolder.Infrastructure.Services;
 using Xunit;
 using Xunit.Abstractions;

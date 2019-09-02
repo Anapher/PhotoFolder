@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Domain.Template;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Interfaces.Services;

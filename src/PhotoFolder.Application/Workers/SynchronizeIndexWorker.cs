@@ -46,13 +46,13 @@ namespace PhotoFolder.Application.Workers
         public async Task<SynchronizeIndexResponse> InternalExecute(SynchronizeIndexRequest request, CancellationToken cancellationToken = default)
         {
             var directory = request.Directory;
-            using var dataContext = directory.GetDataContext();
+            await using var dataContext = directory.GetDataContext();
             var operations = new ConcurrentBag<FileOperation>();
 
             State.Status = SynchronizeIndexStatus.Scanning;
 
             // get all files from the repository
-            var indexedFiles = await dataContext.FileRepository.GetAllBySpecs(new IncludeFileLocationsSpec());
+            var indexedFiles = await dataContext.FileRepository.GetAllReadOnlyBySpecs(new IncludeFileLocationsSpec());
             var indexedFileInfos = indexedFiles.SelectMany(x => x.ToFileInfos(directory));
 
             // get all files from the actual directory

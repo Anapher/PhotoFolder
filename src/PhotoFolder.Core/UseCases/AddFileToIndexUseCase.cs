@@ -36,7 +36,7 @@ namespace PhotoFolder.Core.UseCases
             if (file.RelativeFilename == null)
                 return ReturnError(new InvalidOperationError("The file must be in the photo directory", ErrorCode.FileNotInPhotoDirectory));
 
-            using var dataContext = directory.GetDataContext();
+            await using var dataContext = directory.GetDataContext();
 
             // check if the file already exists
             var existingFile = await dataContext.FileRepository.FirstOrDefaultBySpecs(new FindByFilenameSpec(file.RelativeFilename));

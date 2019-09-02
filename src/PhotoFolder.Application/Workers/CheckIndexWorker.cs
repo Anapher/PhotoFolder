@@ -29,9 +29,9 @@ namespace PhotoFolder.Application.Workers
         {
             // get all files from the repository
             IReadOnlyList<IndexedFile> indexedFiles;
-            using (var context = request.Directory.GetDataContext())
+            await using (var context = request.Directory.GetDataContext())
             {
-                indexedFiles = await context.FileRepository.GetAllBySpecs(new IncludeFileLocationsSpec());
+                indexedFiles = await context.FileRepository.GetAllReadOnlyBySpecs(new IncludeFileLocationsSpec());
             }
 
             var fileInfos = indexedFiles.SelectMany(x => x.Files.Select(y => x.ToFileInformation(y.RelativeFilename, request.Directory))).ToList();

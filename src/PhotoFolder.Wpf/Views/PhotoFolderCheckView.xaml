@@ -1,0 +1,75 @@
+﻿<UserControl
+    x:Class="PhotoFolder.Wpf.Views.PhotoFolderCheckView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mvvm="http://prismlibrary.com/"
+    xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
+    d:DataContext="{d:DesignInstance viewModels:PhotoFolderCheckViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mvvm:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <GroupBox Margin="8" Header="Issues">
+        <Grid>
+            <StackPanel Margin="8" Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" FontSize="14">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Background" Value="Red" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="Padding" Value="3" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding FileCheckReport.Issues.Count}" Value="0" />
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                    <Run Text="{Binding FileCheckReport.Issues.Count, Mode=OneWay}" />
+                    <Run Text="issues found" />
+                </TextBlock>
+                <Button
+                    MinWidth="80"
+                    Margin="16,0,0,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding ResolveIssuesCommand}"
+                    Content="Resolve" />
+            </StackPanel>
+
+            <Grid Background="{StaticResource MahApps.Brushes.White}">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding FileCheckReport}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <StackPanel
+                    Margin="16"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical">
+                    <DockPanel>
+                        <TextBlock Text="Searching for issues..." />
+                        <TextBlock HorizontalAlignment="Right">
+                            <Run Text="{Binding State.FilesProcessed, Mode=OneWay}" />
+                            <Run Text="/" />
+                            <Run Text="{Binding State.TotalFiles, Mode=OneWay}" />
+                            <Run Text="files" />
+                        </TextBlock>
+                    </DockPanel>
+                    <mah:MetroProgressBar
+                        Width="240"
+                        Margin="0,4,0,0"
+                        Background="{StaticResource MahApps.Brushes.Gray10}"
+                        Maximum="1"
+                        Value="{Binding State.Progress}" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </GroupBox>
+</UserControl>

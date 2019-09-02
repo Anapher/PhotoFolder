@@ -10,18 +10,26 @@ namespace PhotoFolder.Infrastructure.Utilities
         /// <param name="n">The value to scan</param>
         public static int SumSetBits(int n)
         {
-            var count = 0;
-
-            while (n > 0)
-            {
-                if ((n & 1) == 1)
-                    count++;
-
-                n = (byte) (n >> 1);
-            }
-
-            return count;
+            // Java: use >>> instead of >>
+            // C or C++: use uint32_t
+            n = n - ((n >> 1) & 0x55555555);
+            n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
+            return (((n + (n >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
         }
+        //public static int SumSetBits(int n)
+        //{
+        //    var count = 0;
+
+        //    while (n > 0)
+        //    {
+        //        if ((n & 1) == 1)
+        //            count++;
+
+        //        n = (byte) (n >> 1);
+        //    }
+
+        //    return count;
+        //}
 
         /// <summary>
         ///     Get the amount of bits with the same position but set to a different value in the two bytes

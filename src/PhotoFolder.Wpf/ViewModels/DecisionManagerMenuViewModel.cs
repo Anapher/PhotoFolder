@@ -100,8 +100,8 @@ namespace PhotoFolder.Wpf.ViewModels
                     if (DecisionContext == null) return;
 
                     IReadOnlyList<IndexedFile> indexedFiles;
-                    using (var appDbContext = DecisionContext.PhotoDirectory.GetDataContext())
-                        indexedFiles = await appDbContext.FileRepository.GetAllBySpecs(new IncludeFileLocationsSpec());
+                    await using (var appDbContext = DecisionContext.PhotoDirectory.GetDataContext())
+                        indexedFiles = await appDbContext.FileRepository.GetAllReadOnlyBySpecs(new IncludeFileLocationsSpec());
 
                     var operations = OperationMapFactory.Create(DecisionContext.Issues.Where(x => x.Execute).Select(x => x.Decision), DecisionContext.RemoveFilesFromOutside,
                         indexedFiles).ToList();

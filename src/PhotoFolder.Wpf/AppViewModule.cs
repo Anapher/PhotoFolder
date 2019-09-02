@@ -18,6 +18,7 @@ namespace PhotoFolder.Wpf
 
             regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderWidgets, typeof(PhotoFolderStatisticsView));
             regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderWidgets, typeof(PhotoFolderImportView));
+            regionManager.RegisterViewWithRegion(RegionNames.PhotoFolderWidgets, typeof(PhotoFolderCheckView));
 
             regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerMenu, typeof(DecisionManagerMenuView));
             regionManager.RegisterViewWithRegion(RegionNames.DecisionManagerList, typeof(DecisionManagerListView));

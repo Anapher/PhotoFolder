@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -25,17 +26,29 @@ namespace PhotoFolder.Core.Domain.Template
 
         public string ToRegexPattern()
         {
-            return Fragments.Aggregate("^", (s, x) =>
+            return "^" + ToPattern(Regex.Escape, ".*?") + "$";
+        }
+
+        public string ToLikePattern(char escapeChar = '\\')
+        {
+            var specialChars = new [] {"%", "_", "["};
+
+            return ToPattern(x => specialChars.Aggregate(x, (current, specialChar) => current.Replace(specialChar, escapeChar + specialChar)), "%");
+        }
+
+        private string ToPattern(Func<string, string> escapeText, string placeholderPattern)
+        {
+            return Fragments.Aggregate(string.Empty, (s, x) =>
             {
                 if (x is TextFragment)
                 {
                     if (_fragments.SkipWhile(y => y != x).Skip(1).FirstOrDefault() is PlaceholderFragment)
-                        return s + Regex.Escape(x.Value.TrimEnd(' ', '-'));
-                    else return s + Regex.Escape(x.Value);
+                        return s + escapeText(x.Value.TrimEnd(' ', '-'));
+                    return s + escapeText(x.Value);
                 }
 
-                return s + ".*?";
-            }) + "$";
+                return s + placeholderPattern;
+            });
         }
 
         public string ToString(IReadOnlyDictionary<string, string> placeholderValues)

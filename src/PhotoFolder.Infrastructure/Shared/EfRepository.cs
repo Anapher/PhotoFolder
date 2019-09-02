@@ -24,6 +24,11 @@ namespace PhotoFolder.Infrastructure.Shared
             return await _appDbContext.Set<T>().ToListAsync();
         }
 
+        public async Task<IReadOnlyList<T>> GetAllReadOnlyBySpecs(params ISpecification<T>[] specs)
+        {
+            return await QuerySpecs(specs).AsNoTracking().ToListAsync();
+        }
+
         public virtual async Task<T> Add(T entity)
         {
             _appDbContext.Set<T>().Add(entity);

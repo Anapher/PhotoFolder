@@ -8,7 +8,8 @@ namespace PhotoFolder.Core.Interfaces.Gateways.Repositories
     {
         Task<IReadOnlyList<T>> GetAll();
         Task<T?> FirstOrDefaultBySpecs(params ISpecification<T>[] specs);
-        Task<IReadOnlyList<T>> GetAllBySpecs(params ISpecification<T>[] spec);
+        Task<IReadOnlyList<T>> GetAllBySpecs(params ISpecification<T>[] specs);
+        Task<IReadOnlyList<T>> GetAllReadOnlyBySpecs(params ISpecification<T>[] specs);
 
         Task<T> Add(T entity);
         Task Update(T entity);

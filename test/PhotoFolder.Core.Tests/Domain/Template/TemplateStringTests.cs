@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using PhotoFolder.Core.Domain.Template;
 using Xunit;
 
@@ -60,57 +61,68 @@ namespace PhotoFolder.Core.Tests.Domain.Template
             Assert.Equal("bonjour hello, welcome to this world", result);
         }
 
-        [Fact]
-        public void GivenPlaceholders_ProduceRegex()
+        public static readonly TheoryData<ITemplateFragment[], (string, PatternType)[]> TestGeneratePattern =
+            new TheoryData<ITemplateFragment[], (string, PatternType)[]>
+            {
+                // with placeholders
+                {
+                    new ITemplateFragment[] {new TextFragment("path/to/"), new PlaceholderFragment("eventName"), new TextFragment("/file.txt")},
+                    new[] {("^path/to/.*?/file\\.txt$", PatternType.Regex), ("path/to/%/file.txt", PatternType.Like)}
+                },
+                // without placeholders
+                {
+                    new ITemplateFragment[] {new TextFragment("path/to/(12.23.2)/"), new TextFragment("file.txt")},
+                    new[] {("^path/to/\\(12\\.23\\.2\\)/file\\.txt$", PatternType.Regex), ("path/to/(12.23.2)/file.txt", PatternType.Like)}
+                },
+                // placeholder after context chars
+                {
+                    new ITemplateFragment[] {new TextFragment("path/to/34.10 - "), new PlaceholderFragment("file")},
+                    new[] {("^path/to/34\\.10.*?$", PatternType.Regex), ("path/to/34.10%", PatternType.Like)}
+                },
+                // text after context chars
+                {
+                    new ITemplateFragment[] {new TextFragment("path/to/34.10 - "), new TextFragment("/wtf.txt")},
+                    new[] {("^path/to/34\\.10\\ -\\ /wtf\\.txt$", PatternType.Regex)}
+                },
+                // like operator chars in path
+                {
+                    new ITemplateFragment[] {new TextFragment("path/to/100%/test_1"), new TextFragment("/wtf.txt")},
+                    new[] {(@"path/to/100\%/test\_1/wtf.txt", PatternType.Like)}
+                }
+            };
+
+
+        public enum PatternType
         {
-            // arrange
-            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/"), new PlaceholderFragment("eventName"),
-                new TextFragment("/file.txt")});
-
-            // act
-            var result = s.ToRegexPattern();
-
-            // assert
-            Assert.Equal("^path/to/.*?/file\\.txt$", result);
+            Regex,
+            Like
         }
 
-        [Fact]
-        public void GivenNoPlaceholders_ProduceRegex()
+        [Theory]
+        [MemberData(nameof(TestGeneratePattern))]
+        public void TestProducePatterns(ITemplateFragment[] fragments, (string, PatternType)[] results)
         {
             // arrange
-            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/(12.23.2)/"), new TextFragment("file.txt")});
+            var s = new TemplateString(fragments);
 
-            // act
-            var result = s.ToRegexPattern();
+            // act/assert
+            foreach (var (expectedPattern, patternType) in results)
+            {
+                string actualPattern;
+                switch (patternType)
+                {
+                    case PatternType.Regex:
+                        actualPattern = s.ToRegexPattern();
+                        break;
+                    case PatternType.Like:
+                        actualPattern = s.ToLikePattern();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
 
-            // assert
-            Assert.Equal("^path/to/\\(12\\.23\\.2\\)/file\\.txt$", result);
-        }
-
-        [Fact]
-        public void HasPlaceholdersAfterContextChars_ProduceRegex()
-        {
-            // arrange
-            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/34.10 - "), new PlaceholderFragment("file"),  });
-
-            // act
-            var result = s.ToRegexPattern();
-
-            // assert
-            Assert.Equal("^path/to/34\\.10.*?$", result);
-        }
-
-        [Fact]
-        public void HasTextAfterContextChars_ProduceRegex()
-        {
-            // arrange
-            var s = new TemplateString(new ITemplateFragment[] { new TextFragment("path/to/34.10 - "), new TextFragment("/wtf.txt"), });
-
-            // act
-            var result = s.ToRegexPattern();
-
-            // assert
-            Assert.Equal("^path/to/34\\.10\\ -\\ /wtf\\.txt$", result);
+                Assert.Equal(expectedPattern, actualPattern);
+            }
         }
     }
 }

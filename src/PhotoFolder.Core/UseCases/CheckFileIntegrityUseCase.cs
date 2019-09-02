@@ -6,8 +6,8 @@ using PhotoFolder.Core.Interfaces;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Interfaces.UseCases;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Core.UseCases
 {
@@ -22,11 +22,16 @@ namespace PhotoFolder.Core.UseCases
 
         public async Task<CheckFileIntegrityResponse?> Handle(CheckFileIntegrityRequest message)
         {
-            var directory = message.PhotoDirectory;
             var fileInformation = message.FileInformation;
-            var indexedFiles = message.IndexedFiles;
 
-            var issues = _fileIntegrityValidators.SelectMany(x => x.CheckForIssues(fileInformation, directory, indexedFiles)).ToList();
+            await using var context = message.FileBaseContext.PhotoDirectory.GetDataContext();
+
+            var issues = new List<IFileIssue>(3);
+            foreach (var validator in _fileIntegrityValidators)
+            {
+                issues.AddRange(await validator.CheckForIssues(fileInformation, message.FileBaseContext, context));
+            }
+
             return new CheckFileIntegrityResponse(fileInformation, issues);
         }
     }

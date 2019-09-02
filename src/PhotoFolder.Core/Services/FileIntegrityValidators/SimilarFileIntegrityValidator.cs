@@ -1,5 +1,4 @@
-﻿using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto.Services;
+﻿using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Dto.UseCaseResponses;
 using PhotoFolder.Core.Interfaces.Gateways;
@@ -7,36 +6,29 @@ using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Core.Utilities;
 using System.Collections.Generic;
 using System.Linq;
-using PhotoFolder.Core.Domain;
+using System.Threading.Tasks;
 
 namespace PhotoFolder.Core.Services.FileIntegrityValidators
 {
     public class SimilarFileIntegrityValidator : IFileIntegrityValidator
     {
-        private const float SimilarityThreshold = 0.8f;
-
-        private readonly IBitmapHashComparer _bitmapHashComparer;
-
-        public SimilarFileIntegrityValidator(IBitmapHashComparer bitmapHashComparer)
+        public ValueTask<IEnumerable<IFileIssue>> CheckForIssues(FileInformation file, IFileBaseContext fileBaseContext, IPhotoDirectoryDataContext dataContext)
         {
-            _bitmapHashComparer = bitmapHashComparer;
+            return new ValueTask<IEnumerable<IFileIssue>>(CheckForIssues(file, fileBaseContext));
         }
 
-        public IEnumerable<IFileIssue> CheckForIssues(FileInformation file, IPhotoDirectory photoDirectory, IReadOnlyList<IndexedFile> indexedFiles)
+        private IEnumerable<IFileIssue> CheckForIssues(FileInformation file, IFileBaseContext fileBaseContext)
         {
             if (file.PhotoProperties != null)
             {
                 var similarFiles = new List<SimilarFile>();
+                var fileHash = file.Hash.ToString();
 
-                foreach (var indexedFile in indexedFiles)
+                foreach (var (indexedFile, similarity) in fileBaseContext.FindSimilarFiles(file.PhotoProperties.BitmapHash))
                 {
-                    if (indexedFile.PhotoProperties == null) continue;
-                    if (Hash.Parse(indexedFile.Hash).Equals(file.Hash)) continue; // can't be similar if it's equal
+                    if (indexedFile.Hash == fileHash) continue; // can't be similar if it's equal
 
-                    var result = _bitmapHashComparer.Compare(indexedFile.PhotoProperties.BitmapHash, file.PhotoProperties.BitmapHash);
-
-                    if (result > SimilarityThreshold)
-                        similarFiles.Add(new SimilarFile(indexedFile.ToFileInformation(photoDirectory), result));
+                    similarFiles.Add(new SimilarFile(indexedFile.ToFileInformation(fileBaseContext.PhotoDirectory), similarity));
                 }
 
                 if (similarFiles.Any())

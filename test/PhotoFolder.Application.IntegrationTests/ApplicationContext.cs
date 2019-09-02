@@ -50,7 +50,7 @@ namespace PhotoFolder.Application.IntegrationTests
             builder.RegisterInstance(fileSystem).As<IFileSystem>();
 
             builder.RegisterInstance(Options.Create(new WorkspaceOptions {ApplyMigrations = false})).As<IOptions<WorkspaceOptions>>();
-            builder.RegisterInstance(Options.Create(new BitmapHashOptions())).As<IOptions<BitmapHashOptions>>();
+            builder.RegisterInstance(Options.Create(new InfrastructureOptions())).As<IOptions<InfrastructureOptions>>();
 
             var services = new ServiceCollection();
 

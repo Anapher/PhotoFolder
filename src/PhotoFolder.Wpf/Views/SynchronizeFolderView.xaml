@@ -53,7 +53,10 @@
                     <Run Text="files)" />
                 </TextBlock>
             </StackPanel>
-            <mah:MetroProgressBar MinWidth="300" Margin="0,2,0,0">
+            <mah:MetroProgressBar
+                MinWidth="300"
+                Margin="0,2,0,0"
+                Background="{StaticResource MahApps.Brushes.Gray10}">
                 <mah:MetroProgressBar.Style>
                     <Style TargetType="mah:MetroProgressBar">
                         <Style.Triggers>

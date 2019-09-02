@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,7 +30,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
             var file = new Mock<IFile>();
             file.Setup(x => x.OpenRead()).Returns(image.GetStream);
 
-            var loader = new FileInformationLoader(new SHA256FileHasher(), _logger);
+            var loader = new FileInformationLoader(new SHA256FileHasher(), _logger, Options.Create(new InfrastructureOptions()));
             var result = await loader.Load(file.Object);
 
             Assert.Equal(image.Hash, result.Hash);
@@ -50,7 +51,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
             file.Setup(x => x.OpenRead()).Returns(textFile);
             file.SetupGet(x => x.ModifiedOn).Returns(createdOn);
 
-            var loader = new FileInformationLoader(new SHA256FileHasher(), _logger);
+            var loader = new FileInformationLoader(new SHA256FileHasher(), _logger, Options.Create(new InfrastructureOptions()));
             var result = await loader.Load(file.Object);
 
             Assert.Equal("7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069", result.Hash.ToString());
