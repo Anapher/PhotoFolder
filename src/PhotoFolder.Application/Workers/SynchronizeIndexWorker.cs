@@ -83,7 +83,7 @@ namespace PhotoFolder.Application.Workers
                 .Select(x => GetFileInformationFromPath(x.RelativeFilename!, indexedFiles, directory))
                 .ToImmutableList();
 
-            var formerlyDeletedFiles = directory.DeletedFiles.Files;
+            var formerlyDeletedFiles = directory.MemoryManager.DirectoryMemory.DeletedFiles;
             var deletedFilesLock = new object();
 
             State.Status = SynchronizeIndexStatus.IndexingNewFiles;
@@ -134,7 +134,7 @@ namespace PhotoFolder.Application.Workers
                 else
                     fileOperation = FileOperation.NewFile(fileLocation);
 
-                using (var context = directory.GetDataContext())
+                await using (var context = directory.GetDataContext())
                 {
                     await context.OperationRepository.Add(fileOperation);
                     operations.Add(fileOperation);
@@ -160,7 +160,7 @@ namespace PhotoFolder.Application.Workers
                 }
             }
 
-            await directory.DeletedFiles.Update(formerlyDeletedFiles);
+            await directory.MemoryManager.Update(directory.MemoryManager.DirectoryMemory.SetDeletedFiles(formerlyDeletedFiles));
             return new SynchronizeIndexResponse(operations.ToList());
         }
 

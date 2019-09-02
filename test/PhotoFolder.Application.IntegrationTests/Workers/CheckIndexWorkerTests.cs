@@ -168,7 +168,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
             var op = Assert.Single(syncResult.Operations);
             Assert.Equal(FileOperationType.Removed, op.Type);
 
-            Assert.NotEmpty(photoDirectory.DeletedFiles.Files);
+            Assert.NotEmpty(photoDirectory.MemoryManager.DirectoryMemory.DeletedFiles);
 
             app.AddResourceFile(Path.Combine(DefaultPhotoFolder.PhotoFolderPath, "test.jpg"), "egypt_sonyz3.jpg");
 
@@ -186,7 +186,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
             // assert
             var issue = Assert.Single(response.Issues);
             Assert.IsType<InvalidFileLocationIssue>(issue);
-            Assert.Empty(photoDirectory.DeletedFiles.Files);
+            Assert.Empty(photoDirectory.MemoryManager.DirectoryMemory.DeletedFiles);
         }
     }
 }

@@ -21,7 +21,8 @@
     <DataGrid
         AutoGenerateColumns="False"
         ItemsSource="{Binding Decisions}"
-        SelectedItem="{Binding DecisionContext.SelectedIssue}">
+        SelectedItem="{Binding DecisionContext.SelectedIssue}"
+        SelectionMode="Single">
         <DataGrid.Resources>
             <ContextMenu x:Key="ItemContextMenu">
                 <MenuItem
@@ -40,6 +41,12 @@
                     CommandParameter="{Binding}"
                     Header="Open File"
                     Icon="{StaticResource OpenFileIcon}" />
+                <Separator />
+                <MenuItem
+                    Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.IgnoreIssueCommand}"
+                    CommandParameter="{Binding}"
+                    Header="Ignore Issue"
+                    Icon="{StaticResource HideMemberIcon}" />
             </ContextMenu>
         </DataGrid.Resources>
         <DataGrid.Columns>

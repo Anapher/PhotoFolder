@@ -10,7 +10,7 @@ namespace PhotoFolder.Core.Interfaces.Gateways
         string RootDirectory { get; }
 
         IEqualityComparer<string> PathComparer { get; }
-        IDeletedFiles DeletedFiles { get; }
+        IDirectoryMemoryManager MemoryManager { get; }
 
         IEnumerable<IFile> EnumerateFiles();
         IFile? GetFile(string filename);

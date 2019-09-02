@@ -5,6 +5,7 @@ using PhotoFolder.Core.Specifications.FileInformation;
 using PhotoFolder.Wpf.Extensions;
 using PhotoFolder.Wpf.Services;
 using PhotoFolder.Wpf.Utilities;
+using PhotoFolder.Wpf.ViewModels.DecisionManager;
 using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -22,6 +23,7 @@ namespace PhotoFolder.Wpf.ViewModels
         private DecisionManagerContext? _decisionContext;
         private DelegateCommand? _unsetAllActionsCommand;
         private AsyncDelegateCommand? _reviewAndExecuteCommand;
+        private DelegateCommand<IQuickActionFileFilter>? _executeQuickActionCommand;
 
         public DecisionManagerMenuViewModel(IDialogService dialogService, IWindowService windowService)
         {
@@ -43,8 +45,10 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (DecisionContext == null) return;
 
+                    DecisionContext.IsBatchOperationActive = true;
                     foreach (var issue in DecisionContext.Issues.Where(x => x.Decision.IsRecommended))
                         issue.Execute = true;
+                    DecisionContext.IsBatchOperationActive = false;
                 });
             }
         }
@@ -57,8 +61,10 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (DecisionContext == null) return;
 
+                    DecisionContext.IsBatchOperationActive = true;
                     foreach (var issue in DecisionContext.Issues)
                         issue.Execute = false;
+                    DecisionContext.IsBatchOperationActive = false;
                 });
             }
         }
@@ -71,8 +77,10 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (DecisionContext == null) return;
 
+                    DecisionContext.IsBatchOperationActive = true;
                     foreach (var issue in DecisionContext.Issues.Where(x => x.Decision is InvalidLocationFileDecisionViewModel))
                         issue.Execute = true;
+                    DecisionContext.IsBatchOperationActive = false;
                 });
             }
         }
@@ -85,8 +93,10 @@ namespace PhotoFolder.Wpf.ViewModels
                 {
                     if (DecisionContext == null) return;
 
+                    DecisionContext.IsBatchOperationActive = true;
                     foreach (var issue in DecisionContext.Issues.Where(x => x.Decision is DuplicateFileDecisionViewModel))
                         issue.Execute = true;
+                    DecisionContext.IsBatchOperationActive = false;
                 });
             }
         }
@@ -103,7 +113,7 @@ namespace PhotoFolder.Wpf.ViewModels
                     await using (var appDbContext = DecisionContext.PhotoDirectory.GetDataContext())
                         indexedFiles = await appDbContext.FileRepository.GetAllReadOnlyBySpecs(new IncludeFileLocationsSpec());
 
-                    var operations = OperationMapFactory.Create(DecisionContext.Issues.Where(x => x.Execute).Select(x => x.Decision), DecisionContext.RemoveFilesFromOutside,
+                    var operations = OperationMapFactory.Create(DecisionContext.ActiveIssues.Where(x => x.Execute).Select(x => x.Decision), DecisionContext.RemoveFilesFromOutside,
                         indexedFiles).ToList();
 
                     if (!operations.Any())
@@ -124,6 +134,25 @@ namespace PhotoFolder.Wpf.ViewModels
                         if (result.Result == ButtonResult.OK)
                             DecisionContext.ResyncDatabaseAction();
                     });
+                });
+            }
+        }
+
+        public DelegateCommand<IQuickActionFileFilter> ExecuteQuickActionCommand
+        {
+            get
+            {
+                return _executeQuickActionCommand ??= new DelegateCommand<IQuickActionFileFilter>(parameter =>
+                {
+                    var quickAction = DecisionContext?.CurrentQuickAction;
+                    if (quickAction == null) return;
+
+                    var issues = parameter.Filter(DecisionContext!.ActiveIssues.Where(x =>
+                        x.Decision.Issue.GetType() == quickAction.Source.Decision.Issue.GetType()));
+
+                    DecisionContext.IsBatchOperationActive = true;
+                    quickAction.Action(issues);
+                    DecisionContext.IsBatchOperationActive = false;
                 });
             }
         }

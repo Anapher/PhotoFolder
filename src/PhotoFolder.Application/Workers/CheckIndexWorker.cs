@@ -35,7 +35,11 @@ namespace PhotoFolder.Application.Workers
             }
 
             var fileInfos = indexedFiles.SelectMany(x => x.Files.Select(y => x.ToFileInformation(y.RelativeFilename, request.Directory))).ToList();
-            return await _checkFilesWorker.Execute(new CheckFilesRequest(fileInfos, request.Directory), cancellationToken);
+            var response =  await _checkFilesWorker.Execute(new CheckFilesRequest(fileInfos, request.Directory), cancellationToken);
+
+            var ignoredIssues = request.Directory.MemoryManager.DirectoryMemory.IgnoredIssues;
+            var issues = response.Issues.Where(x => !ignoredIssues.Contains(x.Identity)).ToList();
+            return new FileCheckReport(issues);
         }
     }
 }

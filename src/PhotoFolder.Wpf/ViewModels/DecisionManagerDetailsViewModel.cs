@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using PhotoFolder.Wpf.Utilities;
+using PhotoFolder.Wpf.ViewModels.DecisionManager;
 using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Commands;
 using Prism.Mvvm;

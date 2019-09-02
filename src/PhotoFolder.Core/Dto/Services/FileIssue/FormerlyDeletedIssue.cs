@@ -12,7 +12,7 @@ namespace PhotoFolder.Core.Dto.Services.FileIssue
             DeletedFileInfo = deletedFileInfo;
         }
 
-        public string Identity => $"FormerlyDeletedIssue:{File.Hash}";
+        public string Identity => $"FormerlyDeleted:{File.Hash}";
 
         public FileInformation File { get; }
         public DeletedFileInfo DeletedFileInfo { get; }

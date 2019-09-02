@@ -22,7 +22,7 @@ namespace PhotoFolder.Core.Dto.Services.FileIssue
 
         public string CorrectFilename { get; }
 
-        public string Identity => File.RelativeFilename ?? File.Filename;
+        public string Identity => "InvalidLocation:" + (File.RelativeFilename ?? File.Filename);
     }
 
     public class FilenameSuggestion

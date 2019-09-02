@@ -130,7 +130,7 @@ namespace PhotoFolder.Application.IntegrationTests.Workers
             Assert.Equal(FileOperationType.Removed, op.Type);
 
             // the file should now be stored as a formerly deleted file
-            Assert.NotEmpty(photoDirectory.DeletedFiles.Files);
+            Assert.NotEmpty(photoDirectory.MemoryManager.DirectoryMemory.DeletedFiles);
 
             const string formerlyDeletedFilePath = "C:/hanszimmer.jpg";
             app.AddResourceFile(formerlyDeletedFilePath, "hanszimmer_htcu11.jpg");

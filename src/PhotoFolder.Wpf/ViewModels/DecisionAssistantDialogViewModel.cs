@@ -3,6 +3,7 @@ using System.Linq;
 using Humanizer;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Wpf.Utilities;
+using PhotoFolder.Wpf.ViewModels.DecisionManager;
 using PhotoFolder.Wpf.ViewModels.Models;
 using Prism.Services.Dialogs;
 

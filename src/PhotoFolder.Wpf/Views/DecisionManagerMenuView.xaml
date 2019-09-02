@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fileIssue="clr-namespace:PhotoFolder.Core.Dto.Services.FileIssue;assembly=PhotoFolder.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PhotoFolder.Wpf.ViewModels"
@@ -12,6 +13,11 @@
     mvvm:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
     <Menu>
+        <Menu.ItemsPanel>
+            <ItemsPanelTemplate>
+                <DockPanel />
+            </ItemsPanelTemplate>
+        </Menu.ItemsPanel>
         <MenuItem Header="Apply Actions">
             <MenuItem
                 Command="{Binding ApplyRecommendedActionsCommand}"
@@ -37,7 +43,87 @@
                 IsCheckable="True"
                 IsChecked="{Binding DecisionContext.RemoveFilesFromOutside}" />
         </MenuItem>
+        <MenuItem Header="View" ItemsSource="{Binding DecisionContext.IssueFilter}">
+            <MenuItem.ItemContainerStyle>
+                <Style BasedOn="{StaticResource MahApps.Styles.MenuItem}" TargetType="MenuItem">
+                    <Setter Property="IsCheckable" Value="True" />
+                    <Setter Property="IsChecked" Value="{Binding IsChecked}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Value}" Value="{x:Type fileIssue:InvalidFileLocationIssue}">
+                            <Setter Property="HeaderTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ContentControl Content="{StaticResource FileDestinationIcon}" />
+                                            <TextBlock Margin="4,0,0,0" Text="Invalid Location" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Value}" Value="{x:Type fileIssue:DuplicateFilesIssue}">
+                            <Setter Property="HeaderTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ContentControl Content="{StaticResource FileCollectionIcon}" />
+                                            <TextBlock Margin="4,0,0,0" Text="Duplicate Files" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Value}" Value="{x:Type fileIssue:SimilarFilesIssue}">
+                            <Setter Property="HeaderTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ContentControl Content="{StaticResource ImageGroupIcon}" />
+                                            <TextBlock Margin="4,0,0,0" Text="Similar Files" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Value}" Value="{x:Type fileIssue:FormerlyDeletedIssue}">
+                            <Setter Property="HeaderTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ContentControl Content="{StaticResource HistoryIcon}" />
+                                            <TextBlock Margin="4,0,0,0" Text="Formerly Deleted Files" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </MenuItem.ItemContainerStyle>
+        </MenuItem>
         <MenuItem
+            Header="{Binding DecisionContext.CurrentQuickAction.Description}"
+            Icon="{StaticResource EventIcon}"
+            ItemsSource="{Binding DecisionContext.CurrentQuickAction.Filters}">
+            <MenuItem.Style>
+                <Style BasedOn="{StaticResource MahApps.Styles.MenuItem}" TargetType="MenuItem">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding DecisionContext.CurrentQuickAction}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </MenuItem.Style>
+            <MenuItem.ItemContainerStyle>
+                <Style BasedOn="{StaticResource MahApps.Styles.MenuItem}" TargetType="MenuItem">
+                    <Setter Property="Header" Value="{Binding Description}" />
+                    <Setter Property="CommandParameter" Value="{Binding}" />
+                    <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.ExecuteQuickActionCommand}" />
+                </Style>
+            </MenuItem.ItemContainerStyle>
+        </MenuItem>
+        <MenuItem
+            HorizontalAlignment="Right"
             Command="{Binding ReviewAndExecuteCommand}"
             Header="Review and execute"
             Icon="{StaticResource RunIcon}" />

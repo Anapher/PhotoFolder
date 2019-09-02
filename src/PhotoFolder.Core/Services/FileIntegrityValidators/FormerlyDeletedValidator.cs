@@ -16,7 +16,7 @@ namespace PhotoFolder.Core.Services.FileIntegrityValidators
 
         private IEnumerable<IFileIssue> CheckForIssues(FileInformation file, IPhotoDirectory photoDirectory)
         {
-            if (photoDirectory.DeletedFiles.Files.TryGetValue(file.Hash.ToString(), out var deletedFile))
+            if (photoDirectory.MemoryManager.DirectoryMemory.DeletedFiles.TryGetValue(file.Hash.ToString(), out var deletedFile))
             {
                 yield return new FormerlyDeletedIssue(file, deletedFile);
             }

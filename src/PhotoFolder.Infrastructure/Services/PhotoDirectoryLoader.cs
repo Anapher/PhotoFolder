@@ -55,8 +55,8 @@ namespace PhotoFolder.Infrastructure.Services
                 await context.Database.MigrateAsync();
             }
 
-            var deletedFilesPath = _fileSystem.Path.Combine(path, config.DeletedFilesPath);
-            var deletedFiles = await DeletedFilesManager.Load(_fileSystem, deletedFilesPath);
+            var deletedFilesPath = _fileSystem.Path.Combine(path, config.DirectoryMemoryPath);
+            var deletedFiles = await DirectoryMemoryManager.Load(_fileSystem, deletedFilesPath);
 
             return new PhotoDirectory(_fileSystem, path, config, contextOptions, deletedFiles);
         }

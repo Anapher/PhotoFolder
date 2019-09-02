@@ -17,6 +17,7 @@ namespace PhotoFolder.Core.Dto.Services.FileIssue
         public FileInformation File { get; }
         public IEnumerable<FileInformation> RelevantFiles => SimilarFiles.Select(x => x.FileInfo);
 
-        public string Identity => string.Join(";", RelevantFiles.Concat(File.Yield()).Select(x => x.Hash.ToString()).OrderBy(x => x));
+        public string Identity =>
+            "SimilarFiles:" + string.Join(";", RelevantFiles.Concat(File.Yield()).Select(x => x.Hash.ToString().Substring(8)).OrderBy(x => x));
     }
 }
