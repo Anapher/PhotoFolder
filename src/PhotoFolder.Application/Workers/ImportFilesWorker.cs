@@ -45,7 +45,7 @@ namespace PhotoFolder.Application.Workers
                 {
                     State.Progress = (double) counter / request.Files.Count;
                 }
-            }, cancellationToken);
+            }, cancellationToken, 4);
 
             State.Status = ImportFilesStatus.Querying;
             _checkFilesWorker.State.PropertyChanged += (_, __) => State.Progress = _checkFilesWorker.State.Progress;

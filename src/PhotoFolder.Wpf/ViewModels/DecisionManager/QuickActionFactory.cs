@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.Services.FileIssue;
-using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Wpf.ViewModels.Models;
 
 namespace PhotoFolder.Wpf.ViewModels.DecisionManager
@@ -49,6 +48,8 @@ namespace PhotoFolder.Wpf.ViewModels.DecisionManager
         {
             var directory = Path.GetDirectoryName(decision.Issue.File.Filename);
             var displayDirectory = Path.GetDirectoryName(decision.Issue.File.RelativeFilename ?? decision.Issue.File.Filename);
+            if (displayDirectory == string.Empty)
+                displayDirectory = "/";
 
             return new DelegateQuickActionFileFilter($"from \"{displayDirectory}\"",
                 list => list.Where(x => Path.GetDirectoryName(x.Decision.Issue.File.Filename) == directory));
@@ -74,7 +75,7 @@ namespace PhotoFolder.Wpf.ViewModels.DecisionManager
         private static string GetIssueTitle(string action, IFileIssue issue)
         {
             var issueName = GetIssueName(issue);
-            return $"{action} all {issueName} issues";
+            return $"{action} all {issueName} issues...";
         }
 
         private static string GetIssueName(IFileIssue issue)

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using PhotoFolder.Core.Domain;
-using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
 
 namespace PhotoFolder.Infrastructure.Photos

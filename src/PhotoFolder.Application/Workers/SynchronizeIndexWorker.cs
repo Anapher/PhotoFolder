@@ -93,7 +93,7 @@ namespace PhotoFolder.Application.Workers
             var removedFilesLock = new object();
             var stateLock = new object();
 
-            await TaskCombinators.ThrottledAsync(newFiles, async (newFile, _) =>
+            await TaskCombinators.ThrottledCatchErrorsAsync(newFiles, async (newFile, _) =>
             {
                 var (action, response) = await IndexFile(newFile.Filename, directory);
 
@@ -143,7 +143,8 @@ namespace PhotoFolder.Application.Workers
                 var processedFiles = Interlocked.Increment(ref processedFilesCount);
                 State.ProcessedFiles = processedFiles;
                 State.Progress = (double) processedFiles / newFiles.Count;
-            }, CancellationToken.None); // do not use cancellation token here as a cancellation would destroy all move/change operations as all files were already removed
+
+            }, CancellationToken.None, 8); // do not use cancellation token here as a cancellation would destroy all move/change operations as all files were already removed
 
             foreach (var removedFile in removedFileInformation)
             {

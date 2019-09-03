@@ -43,7 +43,7 @@ namespace PhotoFolder.Infrastructure.Utilities
         /// <summary>
         ///     Compute the equality of two byte arrays by inspecting the bits (return equal bits / total bits)
         /// </summary>
-        public static float ComputeByteArrayEquality(byte[] data1, byte[] data2)
+        public static float ComputeByteArrayEquality(ReadOnlySpan<byte> data1, ReadOnlySpan<byte> data2)
         {
             if (data1.Length != data2.Length)
                 throw new ArgumentException("The hashes must have the same length.");

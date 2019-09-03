@@ -11,7 +11,7 @@ namespace PhotoFolder.Core.Interfaces.Services
         IImmutableDictionary<string, DeletedFileInfo> DeletedFiles { get; }
 
         /// <summary>
-        ///      Hash -> IgnoredIssue
+        ///      Identity of Issue
         /// </summary>
         IImmutableSet<string> IgnoredIssues { get; }
 

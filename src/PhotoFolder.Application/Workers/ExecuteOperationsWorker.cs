@@ -36,7 +36,7 @@ namespace PhotoFolder.Application.Workers
                 {
                     if (operation is DeleteFileOperation deleteFileOperation)
                     {
-                        if (operation.File.RelativeFilename == null && !request.RemoveFilesFromOutside) return Task.CompletedTask;
+                        if (operation.File.RelativeFilename == null && !request.RemoveFilesFromOutside) return new ValueTask();
 
                         _fileSystem.File.Delete(deleteFileOperation.File.Filename);
                         deletedDirectories.TryAdd(_fileSystem.Path.GetDirectoryName(operation.File.Filename), default);
@@ -61,7 +61,7 @@ namespace PhotoFolder.Application.Workers
                     State.OnOperationProcessed();
                 }
 
-                return Task.CompletedTask;
+                return new ValueTask();
             }, cancellationToken);
 
             foreach (var deletedDirectory in deletedDirectories.Keys)

@@ -1,4 +1,5 @@
-﻿using PhotoFolder.Core.Dto.Services;
+﻿using System;
+using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
 using System.Collections.Concurrent;
 using System.IO;
@@ -13,14 +14,14 @@ namespace PhotoFolder.Infrastructure.Files
     public class DiskLockedFileInformationLoader : IFileInformationLoader
     {
         private readonly FileInformationLoader _fileInformationLoader;
-        private readonly ConcurrentDictionary<string, SemaphoreSlim> _driveLocks;
+        private readonly ConcurrentDictionary<string, Lazy<SemaphoreSlim>> _driveLocks;
         private readonly IFileSystem _fileSystem;
         private readonly InfrastructureOptions _options;
 
         public DiskLockedFileInformationLoader(FileInformationLoader fileInformationLoader, IFileSystem fileSystem, IOptions<InfrastructureOptions> options)
         {
             _fileInformationLoader = fileInformationLoader;
-            _driveLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
+            _driveLocks = new ConcurrentDictionary<string, Lazy<SemaphoreSlim>>();
             _fileSystem = fileSystem;
             _options = options.Value;
         }
@@ -28,15 +29,18 @@ namespace PhotoFolder.Infrastructure.Files
         public async ValueTask<FileInformation> Load(IFile file)
         {
             var root = _fileSystem.Path.GetPathRoot(file.Filename);
-            var volumeLock = _driveLocks.GetOrAdd(root, _ => new SemaphoreSlim(1, 1));
-            await volumeLock.WaitAsync();
 
-            if (file.Length > _options.LargeFileMargin)
-                return await _fileInformationLoader.Load(file);
+            var volumeLock = _driveLocks.GetOrAdd(root, new Lazy<SemaphoreSlim>(() => new SemaphoreSlim(1, 1), LazyThreadSafetyMode.ExecutionAndPublication))
+                .Value;
 
             Stream fileStream;
+
+            await volumeLock.WaitAsync();
             try
             {
+                if (file.Length > _options.LargeFileMargin)
+                    return await _fileInformationLoader.Load(file);
+
                 fileStream = await _fileInformationLoader.LoadFileToMemory(file);
             }
             finally

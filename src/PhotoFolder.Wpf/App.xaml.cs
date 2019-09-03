@@ -1,5 +1,4 @@
-﻿using System;
-using Autofac;
+﻿using Autofac;
 using Microsoft.Extensions.Options;
 using PhotoFolder.Application;
 using PhotoFolder.Core;
@@ -46,6 +45,7 @@ namespace PhotoFolder.Wpf
             var logger = CreateLogger();
             services.AddLogging(loggingBuilder =>
               loggingBuilder.AddSerilog(logger, dispose: true));
+            services.AddMemoryCache();
 
             var container = new Container(CreateContainerRules())
                 .WithDependencyInjectionAdapter(services);

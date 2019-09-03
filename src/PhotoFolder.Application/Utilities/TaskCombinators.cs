@@ -95,8 +95,8 @@ namespace PhotoFolder.Application.Utilities
             return values;
         }
 
-        public static async Task ThrottledAsync<TSource>(IEnumerable<TSource> sources,
-            Func<TSource, CancellationToken, Task> valueSelector, CancellationToken cancellationToken)
+        public static Task ThrottledAsync<TSource>(IEnumerable<TSource> sources, Func<TSource, CancellationToken, ValueTask> valueSelector,
+            CancellationToken cancellationToken, int maxDegreeOfParallelism = MaxDegreeOfParallelism)
         {
             async Task TaskBody(IEnumerator<TSource> enumerator)
             {
@@ -109,14 +109,13 @@ namespace PhotoFolder.Application.Utilities
                     }
             }
 
-            var tasks = Partitioner.Create(sources).GetPartitions(MaxDegreeOfParallelism)
-                .Select(enumerator => Task.Run(() => TaskBody(enumerator)));
-            await Task.WhenAll(tasks);
+            var tasks = Partitioner.Create(sources).GetPartitions(maxDegreeOfParallelism).Select(enumerator => Task.Run(() => TaskBody(enumerator)));
+            return Task.WhenAll(tasks);
         }
 
         public static async Task<IReadOnlyDictionary<TSource, Exception>> ThrottledCatchErrorsAsync<TSource>(
-            IEnumerable<TSource> sources, Func<TSource, CancellationToken, Task> valueSelector,
-            CancellationToken cancellationToken)
+            IEnumerable<TSource> sources, Func<TSource, CancellationToken, ValueTask> valueSelector,
+            CancellationToken cancellationToken, int maxDegreeOfParallelism = MaxDegreeOfParallelism)
         {
             var exceptions = new ConcurrentDictionary<TSource, Exception>();
 
@@ -142,7 +141,7 @@ namespace PhotoFolder.Application.Utilities
                     }
             }
 
-            var tasks = Partitioner.Create(sources).GetPartitions(MaxDegreeOfParallelism)
+            var tasks = Partitioner.Create(sources).GetPartitions(maxDegreeOfParallelism)
                 .Select(enumerator => Task.Run(() => TaskBody(enumerator)));
             await Task.WhenAll(tasks);
 

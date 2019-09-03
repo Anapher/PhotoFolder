@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using PhotoFolder.Core.Domain;
+﻿using PhotoFolder.Core.Domain;
 using PhotoFolder.Infrastructure.Photos;
 using Xunit;
 
@@ -10,7 +9,7 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
         [Fact]
         public void TestCompareRotatedPicture()
         {
-            byte[] picture = new byte[] {
+            byte[] picture = {
                 0b00010001, 0b00110001,
                 0b01100111, 0b01011101,
                 0b00111010, 0b10001010,
@@ -26,11 +25,11 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
                 0b00011111, 0b01010110,
                 0b00010111, 0b11110001,
                 0b10011001, 0b00101101,
-                0b00010100, 0b10010010
+                0b00010100, 0b10010010,
+                0, 0, 0, // color hash
             };
 
-            byte[] pictureRotated = new byte[]
-            {
+            byte[] pictureRotated = {
                 0b01000010, 0b00100000,
                 0b00001110, 0b11001010,
                 0b00000100, 0b11101110,
@@ -47,15 +46,18 @@ namespace PhotoFolder.Infrastructure.Tests.Photos
                 0b01010111, 0b11011010,
                 0b10010010, 0b10100100,
                 0b01100001, 0b10111011,
+                0, 0, 0, // color hash
             };
 
-            var comparer = new BitmapHashComparer(Options.Create(new InfrastructureOptions {RequiredSimilarityForEquality = 0.99F}));
+            var comparer = new BitmapHashComparer();
 
-            var result = comparer.Compare(new Hash(picture), new Hash(pictureRotated));
+            var context = comparer.CreateContext(new Hash(picture));
+            var result = comparer.Compare(context, new Hash(pictureRotated));
             Assert.Equal(1F, result);
 
             // swap arguments, should produce same result
-            result = comparer.Compare(new Hash(pictureRotated), new Hash(picture));
+            context = comparer.CreateContext(new Hash(pictureRotated));
+            result = comparer.Compare(context, new Hash(picture));
             Assert.Equal(1F, result);
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
@@ -11,11 +12,11 @@ namespace PhotoFolder.Infrastructure.Utilities
         /// </summary>
         public static byte[] Compute(Bitmap source)
         {
-            var hashResult = new byte[32];
+            var hashResult = new byte[35];
 
             using (var hashBmp = ScaleImage(source, 16))
             {
-                var pixelBrightness = GetImageBrightness(hashBmp);
+                var (pixelBrightness, averageColor) = GetImageData(hashBmp);
                 var averageBrightness = pixelBrightness.Sum(x => x) / pixelBrightness.Length;
 
                 for (int i = 0; i < pixelBrightness.Length; i++)
@@ -29,6 +30,10 @@ namespace PhotoFolder.Infrastructure.Utilities
                     if (isPixelSet)
                         hashResult[currentByteIndex] = (byte) (hashResult[currentByteIndex] | (1 << currentBitIndex));
                 }
+
+                hashResult[32] = averageColor.R;
+                hashResult[33] = averageColor.G;
+                hashResult[34] = averageColor.B;
             }
 
             return hashResult;
@@ -37,7 +42,7 @@ namespace PhotoFolder.Infrastructure.Utilities
         /// <summary>
         ///     Rotate the bitmap hash by 90° to the right
         /// </summary>
-        public static byte[] RotateBitmapHash(byte[] bitmapHash)
+        public static byte[] RotateBitmapHash(ReadOnlySpan<byte> bitmapHash)
         {
             if (bitmapHash.Length != 32)
                 throw new ArgumentException("The bitmap hash must be 256 bit sized.");
@@ -63,22 +68,31 @@ namespace PhotoFolder.Infrastructure.Utilities
             return new Bitmap(source, length, length);
         }
 
-        private static float[] GetImageBrightness(Bitmap source)
+        private static (float[] pixelBrightnesses, Color averageColor) GetImageData(Bitmap source)
         {
             var result = new float[source.Width * source.Height];
+
+            long r = 0, g = 0, b = 0;
 
             for (int i = 0; i < source.Height; i++)
             {
                 for (int j = 0; j < source.Width; j++)
                 {
-                    var positon = i * source.Width + j;
-                    var brightness = source.GetPixel(i, j).GetBrightness();
+                    var position = i * source.Width + j;
+                    var pixel = source.GetPixel(i, j);
 
-                    result[positon] = brightness;
+                    r += pixel.R;
+                    g += pixel.G;
+                    b += pixel.B;
+
+                    result[position] = pixel.GetBrightness();
                 }
             }
 
-            return result;
+            var totalPixels = source.Width * source.Height;
+            var averageColor = Color.FromArgb((int) (r / totalPixels), (int) (g / totalPixels), (int) (b / totalPixels));
+
+            return (result, averageColor);
         }
     }
 }

@@ -4,11 +4,13 @@ using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Infrastructure.Utilities;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using PhotoFolder.Core.Dto.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,12 +21,14 @@ namespace PhotoFolder.Infrastructure.Files
     {
         private readonly IFileHasher _fileHasher;
         private readonly ILogger<FileInformationLoader> _logger;
+        private readonly IMemoryCache _cache;
         private readonly InfrastructureOptions _options;
 
-        public FileInformationLoader(IFileHasher fileHasher, ILogger<FileInformationLoader> logger, IOptions<InfrastructureOptions> options)
+        public FileInformationLoader(IFileHasher fileHasher, ILogger<FileInformationLoader> logger, IOptions<InfrastructureOptions> options, IMemoryCache cache)
         {
             _fileHasher = fileHasher;
             _logger = logger;
+            _cache = cache;
             _options = options.Value;
         }
 
@@ -33,12 +37,29 @@ namespace PhotoFolder.Infrastructure.Files
             MemoryStream targetStream;
             await using (var fileStream = file.OpenRead())
             {
-                targetStream = new MemoryStream((int)fileStream.Length);
-                await fileStream.CopyToAsync(targetStream);
+                var length = (int) fileStream.Length;
+                var arrayPool = GetArrayPool();
+                var buffer = arrayPool.Rent(length);
+
+                try
+                {
+                    await fileStream.ReadAsync(buffer, 0, length);
+                    targetStream = new PooledMemoryStream(buffer, 0, length, arrayPool);
+                }
+                catch (Exception)
+                {
+                    arrayPool.Return(buffer);
+                    throw;
+                }
             }
 
-            targetStream.Position = 0;
             return targetStream;
+        }
+
+        private ArrayPool<byte> GetArrayPool()
+        {
+            return _cache.GetOrSetValueSafe("ImageFileArrayPool", entry => entry.SetSlidingExpiration(TimeSpan.FromMinutes(1)),
+                () => ArrayPool<byte>.Create(_options.LargeFileMargin, 12));
         }
 
         public async ValueTask<FileInformation> Load(IFile file)

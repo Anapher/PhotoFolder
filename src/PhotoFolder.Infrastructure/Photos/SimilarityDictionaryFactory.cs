@@ -2,16 +2,19 @@
 using System.Linq;
 using Microsoft.Extensions.Options;
 using PhotoFolder.Core.Domain.Entities;
+using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Infrastructure.Utilities;
 
 namespace PhotoFolder.Infrastructure.Photos
 {
     public class SimilarityDictionaryFactory : ISimilarityDictionaryFactory
     {
+        private readonly IBitmapHashComparer _bitmapHashComparer;
         private readonly InfrastructureOptions _options;
 
-        public SimilarityDictionaryFactory(IOptions<InfrastructureOptions> options)
+        public SimilarityDictionaryFactory(IOptions<InfrastructureOptions> options, IBitmapHashComparer bitmapHashComparer)
         {
+            _bitmapHashComparer = bitmapHashComparer;
             _options = options.Value;
         }
 
@@ -27,7 +30,7 @@ namespace PhotoFolder.Infrastructure.Photos
                 else dictionary.Add(setBits, new List<IndexedFile> {indexedFile});
             }
 
-            return new SimilarityDictionary(_options.RequiredSimilarityForIssue, dictionary);
+            return new SimilarityDictionary(_options.RequiredSimilarityForIssue, dictionary, _bitmapHashComparer);
         }
     }
 }

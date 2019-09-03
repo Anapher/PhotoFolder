@@ -1,11 +1,12 @@
 ﻿using PhotoFolder.Core.Domain;
+using PhotoFolder.Core.Dto.Services;
 
 namespace PhotoFolder.Core.Interfaces.Services
 {
     public interface IBitmapHashComparer
     {
-        float RequiredBitmapHashEquality { get; }
+        HashContext CreateContext(Hash hash);
 
-        float Compare(Hash x, Hash y);
+        float Compare(HashContext context, Hash bitmapHash);
     }
 }

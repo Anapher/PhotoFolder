@@ -1,17 +1,19 @@
-﻿using PhotoFolder.Core.Dto.Services;
+﻿using System.Collections.Generic;
+using Microsoft.Extensions.Options;
+using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Interfaces.Services;
-using System.Collections.Generic;
-using PhotoFolder.Core.Domain;
 
-namespace PhotoFolder.Core.Services
+namespace PhotoFolder.Infrastructure.Photos
 {
     public class FileContentInfoComparer : IEqualityComparer<IFileContentInfo>
     {
         private readonly IBitmapHashComparer _bitmapHashComparer;
+        private readonly InfrastructureOptions _options;
 
-        public FileContentInfoComparer(IBitmapHashComparer bitmapHashComparer)
+        public FileContentInfoComparer(IBitmapHashComparer bitmapHashComparer, IOptions<InfrastructureOptions> options)
         {
             _bitmapHashComparer = bitmapHashComparer;
+            _options = options.Value;
         }
 
         public bool Equals(IFileContentInfo file1, IFileContentInfo file2)
@@ -23,8 +25,9 @@ namespace PhotoFolder.Core.Services
             if (file1.PhotoProperties == null || file2.PhotoProperties == null)
                 return false; // we can only compare images
 
-            if (_bitmapHashComparer.Compare(file1.PhotoProperties.BitmapHash, file2.PhotoProperties.BitmapHash) >=
-                _bitmapHashComparer.RequiredBitmapHashEquality)
+            var context = _bitmapHashComparer.CreateContext(file1.PhotoProperties.BitmapHash);
+
+            if (_bitmapHashComparer.Compare(context, file2.PhotoProperties.BitmapHash) >= _options.RequiredSimilarityForEquality)
                 return true;
 
             return false;

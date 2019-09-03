@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PhotoFolder.Core.Domain;
 using PhotoFolder.Core.Domain.Entities;
+using PhotoFolder.Core.Interfaces.Services;
 using PhotoFolder.Infrastructure.Utilities;
 
 namespace PhotoFolder.Infrastructure.Photos
@@ -11,11 +12,14 @@ namespace PhotoFolder.Infrastructure.Photos
     {
         private readonly float _requiredSimilarity;
         private readonly IReadOnlyDictionary<byte, IList<IndexedFile>> _indexedFiles;
+        private readonly IBitmapHashComparer _bitmapHashComparer;
 
-        public SimilarityDictionary(float requiredSimilarity, IReadOnlyDictionary<byte, IList<IndexedFile>> indexedFiles)
+        public SimilarityDictionary(float requiredSimilarity, IReadOnlyDictionary<byte, IList<IndexedFile>> indexedFiles,
+            IBitmapHashComparer bitmapHashComparer)
         {
             _requiredSimilarity = requiredSimilarity;
             _indexedFiles = indexedFiles;
+            _bitmapHashComparer = bitmapHashComparer;
         }
 
         public IEnumerable<(IndexedFile, float)> FindSimilarFiles(Hash bitmapHash)
@@ -29,10 +33,7 @@ namespace PhotoFolder.Infrastructure.Photos
             var minBitsSet = Math.Max(setBits - maxDiff, 0);
             var maxBitsSet = Math.Min(setBits + maxDiff, 255);
 
-            var hashVariants = new List<byte[]> { bitmapHash.HashData }; // 0°
-            hashVariants.Add(BitmapHash.RotateBitmapHash(hashVariants.Last())); // 90°
-            hashVariants.Add(BitmapHash.RotateBitmapHash(hashVariants.Last())); // 180°
-            hashVariants.Add(BitmapHash.RotateBitmapHash(hashVariants.Last())); // 270°
+            var context = _bitmapHashComparer.CreateContext(bitmapHash);
 
             for (var i = minBitsSet; i <= maxBitsSet; i++)
             {
@@ -40,7 +41,7 @@ namespace PhotoFolder.Infrastructure.Photos
                 {
                     foreach (var indexedFile in files)
                     {
-                        var similarity = hashVariants.Select(x => BinaryUtils.ComputeByteArrayEquality(x, indexedFile.PhotoProperties!.BitmapHash.HashData)).Max();
+                        var similarity = _bitmapHashComparer.Compare(context, indexedFile.PhotoProperties!.BitmapHash);
                         if (similarity >= _requiredSimilarity)
                             yield return (indexedFile, similarity);
                     }
