@@ -6,11 +6,8 @@ using PhotoFolder.Infrastructure.Data;
 using PhotoFolder.Infrastructure.Photos;
 using PhotoFolder.Infrastructure.Serialization;
 using PhotoFolder.Infrastructure.Services;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 

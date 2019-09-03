@@ -1,11 +1,9 @@
-﻿using PhotoFolder.Core.Domain.Entities;
-using PhotoFolder.Core.Dto.Services;
+﻿using PhotoFolder.Core.Dto.Services;
 using PhotoFolder.Core.Dto.Services.FileIssue;
 using PhotoFolder.Core.Extensions;
 using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Core.Interfaces.Services;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;

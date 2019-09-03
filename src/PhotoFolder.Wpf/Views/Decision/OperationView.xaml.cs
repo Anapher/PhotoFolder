@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using PhotoFolder.Application.Dto;
-using PhotoFolder.Wpf.ViewModels.Models;
 
 namespace PhotoFolder.Wpf.Views.Decision
 {

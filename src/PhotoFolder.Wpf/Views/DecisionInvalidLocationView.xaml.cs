@@ -1,6 +1,5 @@
 ﻿using PhotoFolder.Wpf.Utilities;
 using PhotoFolder.Wpf.ViewModels;
-using PhotoFolder.Wpf.ViewModels.Models;
 
 namespace PhotoFolder.Wpf.Views
 {

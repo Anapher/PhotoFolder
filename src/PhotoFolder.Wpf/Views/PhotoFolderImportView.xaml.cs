@@ -1,9 +1,6 @@
-﻿using System.ComponentModel;
-using PhotoFolder.Core.Interfaces.Gateways;
+﻿using PhotoFolder.Core.Interfaces.Gateways;
 using PhotoFolder.Wpf.Utilities;
 using PhotoFolder.Wpf.ViewModels;
-using Prism.Common;
-using Prism.Regions;
 
 namespace PhotoFolder.Wpf.Views
 {

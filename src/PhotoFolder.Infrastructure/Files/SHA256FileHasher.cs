@@ -1,5 +1,4 @@
-﻿using PhotoFolder.Core;
-using PhotoFolder.Core.Interfaces.Services;
+﻿using PhotoFolder.Core.Interfaces.Services;
 using System.IO;
 using System.Security.Cryptography;
 using PhotoFolder.Core.Domain;
